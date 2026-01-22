@@ -1,0 +1,277 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+model User {
+  id        String   @id @default(uuid())
+  email     String   @unique
+  password  String
+  name      String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  // Relations
+  projects       Project[]
+  projectMembers ProjectMember[]
+
+  @@map("users")
+}
+
+model Project {
+  id          String   @id @default(uuid())
+  userId      String?
+  name        String
+  description String?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  // Relations
+  user             User?             @relation(fields: [userId], references: [id], onDelete: Cascade)
+  members          ProjectMember[]
+  characters       Character[]
+  dialogues        Dialogue[]
+  smsConversations SMSConversation[]
+  backgrounds      Background[]
+  folders          Folder[]
+  moods            Mood[]
+
+  @@map("projects")
+}
+
+model ProjectMember {
+  id        String   @id @default(uuid())
+  projectId String
+  userId    String
+  role      String   @default("member") // 'owner' | 'admin' | 'member' | 'viewer'
+  createdAt DateTime @default(now())
+
+  // Relations
+  project Project @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  user    User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([projectId, userId])
+  @@map("project_members")
+}
+
+model Folder {
+  id          String   @id @default(uuid())
+  projectId   String
+  name        String
+  description String?
+  type        String   @default("dialogue") // 'dialogue' | 'sms'
+  parentId    String?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  // Relations
+  project          Project           @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  parent           Folder?           @relation("FolderHierarchy", fields: [parentId], references: [id], onDelete: Cascade)
+  children         Folder[]          @relation("FolderHierarchy")
+  dialogues        Dialogue[]
+  smsConversations SMSConversation[]
+
+  @@map("folders")
+}
+
+model Character {
+  id        String  @id @default(uuid())
+  projectId String
+  name      String
+  tag       String
+  color     String?
+
+  // Relations
+  project            Project             @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  dialogueLines      DialogueLine[]
+  smsMessages        SMSMessage[]
+  dialogueCharacters DialogueCharacter[]
+  smsParticipants    SMSParticipant[]
+
+  @@map("characters")
+}
+
+model Mood {
+  id        String   @id @default(uuid())
+  projectId String
+  name      String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  // Relations
+  project Project @relation(fields: [projectId], references: [id], onDelete: Cascade)
+
+  @@map("moods")
+}
+
+model Background {
+  id        String @id @default(uuid())
+  projectId String
+  name      String
+  imageUrl  String
+
+  // Relations
+  project   Project    @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  dialogues Dialogue[]
+
+  @@map("backgrounds")
+}
+
+model Dialogue {
+  id              String   @id @default(uuid())
+  projectId       String
+  folderId        String?
+  backgroundId    String?
+  name            String
+  description     String?
+  isStartDialogue Boolean  @default(false)
+  tags            String?
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  // Relations
+  project    Project             @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  folder     Folder?             @relation(fields: [folderId], references: [id], onDelete: SetNull)
+  background Background?         @relation(fields: [backgroundId], references: [id], onDelete: SetNull)
+  lines      DialogueLine[]
+  characters DialogueCharacter[]
+
+  @@map("dialogues")
+}
+
+model DialogueCharacter {
+  id          String @id @default(uuid())
+  dialogueId  String
+  characterId String
+
+  // Relations
+  dialogue  Dialogue  @relation(fields: [dialogueId], references: [id], onDelete: Cascade)
+  character Character @relation(fields: [characterId], references: [id], onDelete: Cascade)
+
+  @@unique([dialogueId, characterId])
+  @@map("dialogue_characters")
+}
+
+model DialogueLine {
+  id                   String  @id @default(uuid())
+  dialogueId           String
+  characterId          String
+  text                 String
+  order                Int
+  conditions           String?
+  actions              String?
+  displayedCharacterId String? // Pour un seul personnage affiché (optionnel, par défaut celui qui parle)
+  leftCharacterId      String? // Pour deux personnages : celui de gauche
+  rightCharacterId     String? // Pour deux personnages : celui de droite
+  displayedMoodId      String? // Mood pour le personnage affiché (mode un personnage)
+  leftMoodId           String? // Mood pour le personnage de gauche (mode deux personnages)
+  rightMoodId          String? // Mood pour le personnage de droite (mode deux personnages)
+
+  // Relations
+  dialogue  Dialogue         @relation(fields: [dialogueId], references: [id], onDelete: Cascade)
+  character Character        @relation(fields: [characterId], references: [id], onDelete: Cascade)
+  choices   DialogueChoice[]
+
+  @@map("dialogue_lines")
+}
+
+model DialogueChoice {
+  id             String  @id @default(uuid())
+  lineId         String
+  text           String
+  nextDialogueId String?
+  nextLineId     String?
+  conditions     String?
+  actions        String?
+
+  // Relations
+  line DialogueLine @relation(fields: [lineId], references: [id], onDelete: Cascade)
+
+  @@map("dialogue_choices")
+}
+
+model SMSConversation {
+  id          String   @id @default(uuid())
+  projectId   String
+  folderId    String?
+  name        String
+  isGroupChat Boolean  @default(false)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  // Relations
+  project      Project          @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  folder       Folder?          @relation(fields: [folderId], references: [id], onDelete: SetNull)
+  messages     SMSMessage[]
+  participants SMSParticipant[]
+
+  @@map("sms_conversations")
+}
+
+model SMSParticipant {
+  id             String @id @default(uuid())
+  conversationId String
+  characterId    String
+
+  // Relations
+  conversation SMSConversation @relation(fields: [conversationId], references: [id], onDelete: Cascade)
+  character    Character       @relation(fields: [characterId], references: [id], onDelete: Cascade)
+
+  @@unique([conversationId, characterId])
+  @@map("sms_participants")
+}
+
+model SMSMessage {
+  id             String   @id @default(uuid())
+  conversationId String
+  characterId    String
+  text           String
+  timestamp      DateTime @default(now())
+  isRead         Boolean  @default(false)
+  messageType    String   @default("text") // 'text' | 'image'
+  attachmentUrl  String?
+
+  // Relations
+  conversation SMSConversation @relation(fields: [conversationId], references: [id], onDelete: Cascade)
+  character    Character       @relation(fields: [characterId], references: [id], onDelete: Cascade)
+  questions    SMSQuestion[]
+
+  @@map("sms_messages")
+}
+
+model SMSQuestion {
+  id                String   @id @default(uuid())
+  messageId         String
+  content           String
+  positiveReactions String // JSON array of strings
+  negativeReactions String // JSON array of strings
+  createdAt         DateTime @default(now())
+
+  // Relations
+  message SMSMessage  @relation(fields: [messageId], references: [id], onDelete: Cascade)
+  answers SMSAnswer[]
+
+  @@map("sms_questions")
+}
+
+model SMSAnswer {
+  id         String  @id @default(uuid())
+  questionId String
+  content    String
+  isCorrect  Boolean @default(false)
+  order      Int     @default(0)
+
+  // Relations
+  question SMSQuestion @relation(fields: [questionId], references: [id], onDelete: Cascade)
+
+  @@map("sms_answers")
+}
+
+// Suppression de l'ancien modèle Scene qui n'est plus utilisé
