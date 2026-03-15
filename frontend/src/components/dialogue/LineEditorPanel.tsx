@@ -48,14 +48,14 @@ const LineEditorPanel: React.FC<LineEditorPanelProps> = ({
       {/* Informations sur la ligne */}
       <div className="p-4 border-b border-gray-200 bg-gray-50">
         <div className="flex items-center gap-3 mb-3">
-          {line.characterId && (
+          {(line.character || line.characterId) && (
             <div
               className="w-6 h-6 rounded-full"
-              style={{ backgroundColor: getCharacterColor(characters, line.characterId) }}
+              style={{ backgroundColor: line.character?.color || getCharacterColor(characters, line.characterId || '') }}
             />
           )}
           <span className="font-medium">
-            {line.characterId ? getCharacterName(characters, line.characterId) : 'Narrateur'}
+            {line.character?.name || (line.characterId ? getCharacterName(characters, line.characterId) : 'Narrateur')}
           </span>
         </div>
 

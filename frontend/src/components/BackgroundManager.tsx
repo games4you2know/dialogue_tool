@@ -15,6 +15,7 @@ export const BackgroundManager: React.FC<BackgroundManagerProps> = ({ projectId 
   const [editingBackground, setEditingBackground] = useState<Background | null>(null);
   const [formData, setFormData] = useState({
     name: '',
+    tag: '',
   });
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
@@ -38,7 +39,7 @@ export const BackgroundManager: React.FC<BackgroundManagerProps> = ({ projectId 
   };
 
   const resetForm = () => {
-    setFormData({ name: '' });
+    setFormData({ name: '', tag: '' });
     setSelectedFile(null);
     setPreviewUrl(null);
     setEditingBackground(null);
@@ -74,6 +75,7 @@ export const BackgroundManager: React.FC<BackgroundManagerProps> = ({ projectId 
       await backgroundService.createBackground({
         projectId,
         name: formData.name.trim(),
+        tag: formData.tag.trim() || formData.name.toUpperCase().replace(/\s+/g, '_'),
         imageUrl: fullImageUrl,
       });
 

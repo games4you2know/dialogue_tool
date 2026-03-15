@@ -3,15 +3,14 @@ import { authService } from "../services/authService";
 
 interface User {
   id: string;
-  email: string;
-  name: string;
+  username: string;
 }
 
 interface AuthContextType {
   user: User | null;
   loading: boolean;
-  login: (email: string, password: string) => Promise<void>;
-  register: (email: string, password: string, name: string) => Promise<void>;
+  login: (username: string, password: string) => Promise<void>;
+  register: (username: string, password: string) => Promise<void>;
   logout: () => void;
   isAuthenticated: boolean;
 }
@@ -23,7 +22,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    // Vérifier si l'utilisateur est déjà connecté au chargement
     const checkAuth = async () => {
       try {
         const currentUser = await authService.checkAuth();
@@ -38,13 +36,13 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     checkAuth();
   }, []);
 
-  const login = async (email: string, password: string) => {
-    const response = await authService.login(email, password);
+  const login = async (username: string, password: string) => {
+    const response = await authService.login(username, password);
     setUser(response.user);
   };
 
-  const register = async (email: string, password: string, name: string) => {
-    const response = await authService.register(email, password, name);
+  const register = async (username: string, password: string) => {
+    const response = await authService.register(username, password);
     setUser(response.user);
   };
 

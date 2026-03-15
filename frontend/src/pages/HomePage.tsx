@@ -60,8 +60,6 @@ const HomePage: React.FC = () => {
             <button
               className={`px-4 py-2 rounded-md font-medium transition-colors ${action.className}`}
               onClick={() => {
-                // TODO: Implémenter les actions
-                console.log(`Action: ${action.action}`);
               }}
             >
               {action.buttonText}

@@ -3,8 +3,7 @@ import { useNavigate, Link } from "react-router-dom";
 import { useAuth } from "../contexts/AuthContext";
 
 export default function RegisterPage() {
-  const [name, setName] = useState("");
-  const [email, setEmail] = useState("");
+  const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
   const [error, setError] = useState("");
@@ -30,7 +29,7 @@ export default function RegisterPage() {
     setLoading(true);
 
     try {
-      await register(email, password, name);
+      await register(username, password);
       navigate("/projects");
     } catch (err: any) {
       setError(err.message || "Erreur lors de l'inscription");
@@ -55,32 +54,17 @@ export default function RegisterPage() {
           )}
 
           <div>
-            <label htmlFor="name" className="block text-sm font-medium text-gray-300 mb-2">
-              Nom
+            <label htmlFor="username" className="block text-sm font-medium text-gray-300 mb-2">
+              Pseudo
             </label>
             <input
-              id="name"
+              id="username"
               type="text"
               required
-              value={name}
-              onChange={(e) => setName(e.target.value)}
+              value={username}
+              onChange={(e) => setUsername(e.target.value)}
               className="w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:border-blue-500"
-              placeholder="Votre nom"
-            />
-          </div>
-
-          <div>
-            <label htmlFor="email" className="block text-sm font-medium text-gray-300 mb-2">
-              Email
-            </label>
-            <input
-              id="email"
-              type="email"
-              required
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              className="w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:border-blue-500"
-              placeholder="votre@email.com"
+              placeholder="VotrePseudo"
             />
           </div>
 

@@ -1,6 +1,5 @@
 import type { Character, Mood } from '../types/index';
-
-const API_BASE_URL = 'http://localhost:4000/api';
+import API_BASE_URL from '../config/api';
 
 export interface CreateCharacterRequest {
   projectId: string;

@@ -12,9 +12,8 @@ generator client {
 
 model User {
   id        String   @id @default(uuid())
-  email     String   @unique
+  username  String   @unique
   password  String
-  name      String
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
@@ -102,6 +101,7 @@ model Mood {
   id        String   @id @default(uuid())
   projectId String
   name      String
+  tag       String
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
@@ -115,6 +115,7 @@ model Background {
   id        String @id @default(uuid())
   projectId String
   name      String
+  tag       String
   imageUrl  String
 
   // Relations
@@ -125,16 +126,16 @@ model Background {
 }
 
 model Dialogue {
-  id              String   @id @default(uuid())
-  projectId       String
-  folderId        String?
-  backgroundId    String?
-  name            String
-  description     String?
-  isStartDialogue Boolean  @default(false)
-  tags            String?
-  createdAt       DateTime @default(now())
-  updatedAt       DateTime @updatedAt
+  id           String   @id @default(uuid())
+  projectId    String
+  folderId     String?
+  backgroundId String?
+  name         String
+  tag          String
+  description  String?
+  tags         String?
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
 
   // Relations
   project    Project             @relation(fields: [projectId], references: [id], onDelete: Cascade)
@@ -162,21 +163,21 @@ model DialogueCharacter {
 model DialogueLine {
   id                   String  @id @default(uuid())
   dialogueId           String
-  characterId          String
+  characterId          String?
   text                 String
   order                Int
-  conditions           String?
-  actions              String?
   displayedCharacterId String? // Pour un seul personnage affiché (optionnel, par défaut celui qui parle)
   leftCharacterId      String? // Pour deux personnages : celui de gauche
   rightCharacterId     String? // Pour deux personnages : celui de droite
   displayedMoodId      String? // Mood pour le personnage affiché (mode un personnage)
   leftMoodId           String? // Mood pour le personnage de gauche (mode deux personnages)
   rightMoodId          String? // Mood pour le personnage de droite (mode deux personnages)
+  leftCharacterActive  Boolean @default(false) // Si le personnage de gauche est actif
+  rightCharacterActive Boolean @default(false) // Si le personnage de droite est actif
 
   // Relations
   dialogue  Dialogue         @relation(fields: [dialogueId], references: [id], onDelete: Cascade)
-  character Character        @relation(fields: [characterId], references: [id], onDelete: Cascade)
+  character Character?       @relation(fields: [characterId], references: [id], onDelete: Cascade)
   choices   DialogueChoice[]
 
   @@map("dialogue_lines")
@@ -202,6 +203,7 @@ model SMSConversation {
   projectId   String
   folderId    String?
   name        String
+  tag         String
   isGroupChat Boolean  @default(false)
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt

@@ -15,6 +15,8 @@ interface CharacterDisplaySettingsProps {
     displayedMoodId: string;
     leftMoodId: string;
     rightMoodId: string;
+    leftCharacterActive: boolean;
+    rightCharacterActive: boolean;
   };
   onStartEdit: () => void;
   onSave: () => void;
@@ -252,9 +254,7 @@ const CharacterDisplaySettings: React.FC<CharacterDisplaySettingsProps> = ({
           {displaySettings.displayMode === 'one' ? (
             <div className="space-y-2">
               <div>
-                <label className="block text-xs text-gray-600 mb-1">
-                  Personnage affiché
-                </label>
+                <label className="block text-xs text-gray-600 mb-1">Personnage affiché</label>
                 <select
                   value={displaySettings.displayedCharacterId}
                   onChange={(e) => {
@@ -262,7 +262,7 @@ const CharacterDisplaySettings: React.FC<CharacterDisplaySettingsProps> = ({
                   }}
                   className="w-full text-sm border border-gray-300 rounded px-2 py-1 focus:outline-none focus:ring-2 focus:ring-blue-500"
                 >
-                  <option value="">Celui qui parle (par défaut)</option>
+                  <option value="">Par défaut (celui qui parle)</option>
                   {characters.map((character) => (
                     <option key={character.id} value={character.id}>
                       {character.name}
@@ -270,62 +270,74 @@ const CharacterDisplaySettings: React.FC<CharacterDisplaySettingsProps> = ({
                   ))}
                 </select>
               </div>
-              {renderMoodSelector(
-                displaySettings.displayedMoodId,
-                (value) => onUpdateSettings({ ...displaySettings, displayedMoodId: value }),
-                "Émotion du personnage",
-                'displayed'
-              )}
+              <div>
+                {renderMoodSelector(
+                  displaySettings.displayedMoodId,
+                  (value) => onUpdateSettings({ ...displaySettings, displayedMoodId: value }),
+                  "Émotion du personnage",
+                  'displayed'
+                )}
+              </div>
             </div>
           ) : (
             <div className="space-y-3">
-              <div className="space-y-2">
-                <div>
-                  <label className="block text-xs text-gray-600 mb-1">
-                    Personnage de gauche
-                  </label>
-                  <select
-                    value={displaySettings.leftCharacterId}
-                    onChange={(e) => onUpdateSettings({ ...displaySettings, leftCharacterId: e.target.value, leftMoodId: '' })}
-                    className="w-full text-sm border border-gray-300 rounded px-2 py-1 focus:outline-none focus:ring-2 focus:ring-blue-500"
-                  >
-                    <option value="">Aucun</option>
-                    {characters.map((character) => (
-                      <option key={character.id} value={character.id}>
-                        {character.name}
-                      </option>
-                    ))}
-                  </select>
-                </div>
+              <div className="p-2 bg-blue-50 rounded border border-blue-200">
+                <label className="block text-xs font-medium text-gray-700 mb-1">Personnage de gauche</label>
+                <select
+                  value={displaySettings.leftCharacterId}
+                  onChange={(e) => onUpdateSettings({ ...displaySettings, leftCharacterId: e.target.value, leftMoodId: '' })}
+                  className="w-full text-sm border border-gray-300 rounded px-2 py-1 mb-1 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                >
+                  <option value="">Aucun</option>
+                  {characters.map((character) => (
+                    <option key={character.id} value={character.id}>
+                      {character.name}
+                    </option>
+                  ))}
+                </select>
+                <label className="flex items-center cursor-pointer mb-2">
+                  <input
+                    type="checkbox"
+                    checked={displaySettings.leftCharacterActive}
+                    onChange={(e) => onUpdateSettings({ ...displaySettings, leftCharacterActive: e.target.checked })}
+                    className="mr-2"
+                  />
+                  <span className="text-xs text-gray-600">Actif</span>
+                </label>
                 {renderMoodSelector(
                   displaySettings.leftMoodId,
                   (value) => onUpdateSettings({ ...displaySettings, leftMoodId: value }),
-                  "Émotion du personnage de gauche",
+                  "Émotion",
                   'left'
                 )}
               </div>
-              <div className="space-y-2">
-                <div>
-                  <label className="block text-xs text-gray-600 mb-1">
-                    Personnage de droite
-                  </label>
-                  <select
-                    value={displaySettings.rightCharacterId}
-                    onChange={(e) => onUpdateSettings({ ...displaySettings, rightCharacterId: e.target.value, rightMoodId: '' })}
-                    className="w-full text-sm border border-gray-300 rounded px-2 py-1 focus:outline-none focus:ring-2 focus:ring-blue-500"
-                  >
-                    <option value="">Aucun</option>
-                    {characters.map((character) => (
-                      <option key={character.id} value={character.id}>
-                        {character.name}
-                      </option>
-                    ))}
-                  </select>
-                </div>
+              <div className="p-2 bg-green-50 rounded border border-green-200">
+                <label className="block text-xs font-medium text-gray-700 mb-1">Personnage de droite</label>
+                <select
+                  value={displaySettings.rightCharacterId}
+                  onChange={(e) => onUpdateSettings({ ...displaySettings, rightCharacterId: e.target.value, rightMoodId: '' })}
+                  className="w-full text-sm border border-gray-300 rounded px-2 py-1 mb-1 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                >
+                  <option value="">Aucun</option>
+                  {characters.map((character) => (
+                    <option key={character.id} value={character.id}>
+                      {character.name}
+                    </option>
+                  ))}
+                </select>
+                <label className="flex items-center cursor-pointer mb-2">
+                  <input
+                    type="checkbox"
+                    checked={displaySettings.rightCharacterActive}
+                    onChange={(e) => onUpdateSettings({ ...displaySettings, rightCharacterActive: e.target.checked })}
+                    className="mr-2"
+                  />
+                  <span className="text-xs text-gray-600">Actif</span>
+                </label>
                 {renderMoodSelector(
                   displaySettings.rightMoodId,
                   (value) => onUpdateSettings({ ...displaySettings, rightMoodId: value }),
-                  "Émotion du personnage de droite",
+                  "Émotion",
                   'right'
                 )}
               </div>

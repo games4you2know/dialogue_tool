@@ -14,6 +14,7 @@ export const MoodManager: React.FC<MoodManagerProps> = ({ projectId }) => {
   const [editingMood, setEditingMood] = useState<Mood | null>(null);
   const [formData, setFormData] = useState({
     name: '',
+    tag: '',
   });
 
   useEffect(() => {
@@ -35,7 +36,7 @@ export const MoodManager: React.FC<MoodManagerProps> = ({ projectId }) => {
   };
 
   const resetForm = () => {
-    setFormData({ name: '' });
+    setFormData({ name: '', tag: '' });
     setEditingMood(null);
     setShowForm(false);
   };
@@ -50,7 +51,8 @@ export const MoodManager: React.FC<MoodManagerProps> = ({ projectId }) => {
 
     try {
       setError(null);
-      await moodService.createMood(projectId, formData.name.trim());
+      const tag = formData.tag.trim() || formData.name.toUpperCase().replace(/\s+/g, '_');
+      await moodService.createMood(projectId, formData.name.trim(), tag);
       resetForm();
       await loadMoods();
     } catch (err) {
@@ -70,7 +72,7 @@ export const MoodManager: React.FC<MoodManagerProps> = ({ projectId }) => {
 
     try {
       setError(null);
-      await moodService.updateMood(editingMood.id, formData.name.trim());
+      await moodService.updateMood(editingMood.id, formData.name.trim(), formData.tag.trim() || undefined);
       resetForm();
       await loadMoods();
     } catch (err) {
@@ -95,7 +97,7 @@ export const MoodManager: React.FC<MoodManagerProps> = ({ projectId }) => {
 
   const startEdit = (mood: Mood) => {
     setEditingMood(mood);
-    setFormData({ name: mood.name });
+    setFormData({ name: mood.name, tag: mood.tag });
     setShowForm(true);
   };
 
@@ -132,6 +134,7 @@ export const MoodManager: React.FC<MoodManagerProps> = ({ projectId }) => {
           <div key={mood.id} className="bg-white border border-gray-200 rounded-lg p-3 shadow-sm hover:shadow-md transition-shadow">
             <div className="mb-2">
               <h3 className="font-semibold text-gray-800 text-sm truncate">{mood.name}</h3>
+              <p className="text-xs text-gray-500 truncate">Tag: {mood.tag}</p>
             </div>
             <div className="flex gap-2">
               <button
@@ -166,7 +169,7 @@ export const MoodManager: React.FC<MoodManagerProps> = ({ projectId }) => {
             </h3>
             
             <form onSubmit={editingMood ? handleUpdate : handleCreate}>
-              <div className="mb-6">
+              <div className="mb-4">
                 <label className="block text-sm font-medium text-gray-700 mb-2">
                   Nom de l'émotion *
                 </label>
@@ -179,6 +182,22 @@ export const MoodManager: React.FC<MoodManagerProps> = ({ projectId }) => {
                   required
                   autoFocus
                 />
+              </div>
+
+              <div className="mb-6">
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Tag
+                </label>
+                <input
+                  type="text"
+                  value={formData.tag}
+                  onChange={(e) => setFormData({ ...formData, tag: e.target.value })}
+                  className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  placeholder="Ex: HAPPY, SAD, ANGRY (auto-généré si vide)"
+                />
+                <p className="text-xs text-gray-500 mt-1">
+                  Identifiant unique pour l'export. Laissez vide pour génération automatique.
+                </p>
               </div>
 
               <div className="flex gap-3">

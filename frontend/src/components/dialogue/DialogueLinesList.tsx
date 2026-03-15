@@ -35,14 +35,14 @@ const DialogueLinesList: React.FC<DialogueLinesListProps> = ({
             <div className="flex justify-between items-start mb-2">
               <div className="flex items-center gap-2">
                 <span className="text-xs text-gray-500">#{index + 1}</span>
-                {line.characterId && (
+                {(line.character || line.characterId) && (
                   <div
                     className="w-4 h-4 rounded-full"
-                    style={{ backgroundColor: getCharacterColor(characters, line.characterId) }}
+                    style={{ backgroundColor: line.character?.color || getCharacterColor(characters, line.characterId || '') }}
                   />
                 )}
                 <span className="text-sm font-medium">
-                  {line.characterId ? getCharacterName(characters, line.characterId) : 'Narrateur'}
+                  {line.character?.name || (line.characterId ? getCharacterName(characters, line.characterId) : 'Narrateur')}
                 </span>
               </div>
               <button

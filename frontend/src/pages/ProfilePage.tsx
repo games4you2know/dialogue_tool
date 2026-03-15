@@ -1,42 +1,16 @@
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { useAuth } from "../contexts/AuthContext";
 import { useNavigate } from "react-router-dom";
 
 export default function ProfilePage() {
   const { user, logout } = useAuth();
   const navigate = useNavigate();
-  const [name, setName] = useState("");
-  const [email, setEmail] = useState("");
   const [currentPassword, setCurrentPassword] = useState("");
   const [newPassword, setNewPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
   const [error, setError] = useState("");
   const [success, setSuccess] = useState("");
   const [loading, setLoading] = useState(false);
-
-  useEffect(() => {
-    if (user) {
-      setName(user.name);
-      setEmail(user.email);
-    }
-  }, [user]);
-
-  const handleUpdateProfile = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setError("");
-    setSuccess("");
-    setLoading(true);
-
-    try {
-      // TODO: Implémenter l'appel API pour mettre à jour le profil
-      // await authService.updateProfile({ name, email });
-      setSuccess("Profil mis à jour avec succès");
-    } catch (err: any) {
-      setError(err.message || "Erreur lors de la mise à jour");
-    } finally {
-      setLoading(false);
-    }
-  };
 
   const handleChangePassword = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -109,41 +83,19 @@ export default function ProfilePage() {
           {/* Informations personnelles */}
           <div className="bg-gray-800 rounded-lg p-6">
             <h2 className="text-xl font-semibold text-white mb-4">Informations personnelles</h2>
-            <form onSubmit={handleUpdateProfile} className="space-y-4">
+            <div className="space-y-4">
               <div>
-                <label htmlFor="name" className="block text-sm font-medium text-gray-300 mb-2">
-                  Nom
+                <label className="block text-sm font-medium text-gray-300 mb-2">
+                  Pseudo
                 </label>
-                <input
-                  id="name"
-                  type="text"
-                  value={name}
-                  onChange={(e) => setName(e.target.value)}
-                  className="w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:border-blue-500"
-                />
+                <div className="w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded-lg text-gray-400">
+                  {user.username}
+                </div>
+                <p className="text-xs text-gray-500 mt-1">
+                  Le pseudo ne peut pas être modifié
+                </p>
               </div>
-
-              <div>
-                <label htmlFor="email" className="block text-sm font-medium text-gray-300 mb-2">
-                  Email
-                </label>
-                <input
-                  id="email"
-                  type="email"
-                  value={email}
-                  onChange={(e) => setEmail(e.target.value)}
-                  className="w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:border-blue-500"
-                />
-              </div>
-
-              <button
-                type="submit"
-                disabled={loading}
-                className="w-full bg-blue-600 hover:bg-blue-700 text-white font-medium py-2 px-4 rounded-lg transition disabled:opacity-50 disabled:cursor-not-allowed"
-              >
-                {loading ? "Mise à jour..." : "Mettre à jour"}
-              </button>
-            </form>
+            </div>
           </div>
 
           {/* Changer le mot de passe */}

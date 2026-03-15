@@ -12,6 +12,8 @@ interface LineFormData {
   displayedMoodId: string;
   leftMoodId: string;
   rightMoodId: string;
+  leftCharacterActive: boolean;
+  rightCharacterActive: boolean;
 }
 
 interface AddLineFormProps {
@@ -122,6 +124,7 @@ const AddLineForm: React.FC<AddLineFormProps> = ({
               onChange={(e) => onUpdateFormData({ ...formData, characterId: e.target.value })}
               className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
             >
+              <option value="">Narrateur</option>
               {characters.map((character) => (
                 <option key={character.id} value={character.id}>
                   {character.name}
@@ -179,16 +182,14 @@ const AddLineForm: React.FC<AddLineFormProps> = ({
 
             {formData.displayMode === 'one' ? (
               <>
-                <div>
-                  <label className="block text-sm text-gray-600 mb-2">
-                    Personnage affiché (par défaut : celui qui parle)
-                  </label>
+                <div className="mb-3">
+                  <label className="block text-sm text-gray-600 mb-2">Personnage affiché</label>
                   <select
                     value={formData.displayedCharacterId}
                     onChange={(e) => onUpdateFormData({ ...formData, displayedCharacterId: e.target.value })}
                     className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
                   >
-                    <option value="">Celui qui parle</option>
+                    <option value="">Par défaut (celui qui parle)</option>
                     {characters.map((character) => (
                       <option key={character.id} value={character.id}>
                         {character.name}
@@ -196,23 +197,23 @@ const AddLineForm: React.FC<AddLineFormProps> = ({
                     ))}
                   </select>
                 </div>
-                {renderMoodSelector(
-                  formData.displayedMoodId,
-                  (value) => onUpdateFormData({ ...formData, displayedMoodId: value }),
-                  "Émotion du personnage",
-                  'displayed'
-                )}
+                <div>
+                  {renderMoodSelector(
+                    formData.displayedMoodId,
+                    (value) => onUpdateFormData({ ...formData, displayedMoodId: value }),
+                    "Émotion du personnage",
+                    'displayed'
+                  )}
+                </div>
               </>
             ) : (
               <div className="space-y-3">
-                <div>
-                  <label className="block text-sm text-gray-600 mb-2">
-                    Personnage de gauche
-                  </label>
+                <div className="p-3 bg-blue-50 rounded-lg border border-blue-200">
+                  <label className="block text-sm font-medium text-gray-700 mb-2">Personnage de gauche</label>
                   <select
                     value={formData.leftCharacterId}
                     onChange={(e) => onUpdateFormData({ ...formData, leftCharacterId: e.target.value })}
-                    className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    className="w-full border border-gray-300 rounded-lg px-3 py-2 mb-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
                   >
                     <option value="">Aucun</option>
                     {characters.map((character) => (
@@ -221,21 +222,29 @@ const AddLineForm: React.FC<AddLineFormProps> = ({
                       </option>
                     ))}
                   </select>
-                </div>
-                {renderMoodSelector(
-                  formData.leftMoodId,
-                  (value) => onUpdateFormData({ ...formData, leftMoodId: value }),
-                  "Émotion personnage gauche",
-                  'left'
-                )}
-                <div>
-                  <label className="block text-sm text-gray-600 mb-2">
-                    Personnage de droite
+                  <label className="flex items-center cursor-pointer mb-2">
+                    <input
+                      type="checkbox"
+                      checked={formData.leftCharacterActive}
+                      onChange={(e) => onUpdateFormData({ ...formData, leftCharacterActive: e.target.checked })}
+                      className="mr-2"
+                    />
+                    <span className="text-xs text-gray-600">Actif</span>
                   </label>
+                  {renderMoodSelector(
+                    formData.leftMoodId,
+                    (value) => onUpdateFormData({ ...formData, leftMoodId: value }),
+                    "Émotion",
+                    'left'
+                  )}
+                </div>
+                
+                <div className="p-3 bg-green-50 rounded-lg border border-green-200">
+                  <label className="block text-sm font-medium text-gray-700 mb-2">Personnage de droite</label>
                   <select
                     value={formData.rightCharacterId}
                     onChange={(e) => onUpdateFormData({ ...formData, rightCharacterId: e.target.value })}
-                    className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    className="w-full border border-gray-300 rounded-lg px-3 py-2 mb-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
                   >
                     <option value="">Aucun</option>
                     {characters.map((character) => (
@@ -244,13 +253,22 @@ const AddLineForm: React.FC<AddLineFormProps> = ({
                       </option>
                     ))}
                   </select>
+                  <label className="flex items-center cursor-pointer mb-2">
+                    <input
+                      type="checkbox"
+                      checked={formData.rightCharacterActive}
+                      onChange={(e) => onUpdateFormData({ ...formData, rightCharacterActive: e.target.checked })}
+                      className="mr-2"
+                    />
+                    <span className="text-xs text-gray-600">Actif</span>
+                  </label>
+                  {renderMoodSelector(
+                    formData.rightMoodId,
+                    (value) => onUpdateFormData({ ...formData, rightMoodId: value }),
+                    "Émotion",
+                    'right'
+                  )}
                 </div>
-                {renderMoodSelector(
-                  formData.rightMoodId,
-                  (value) => onUpdateFormData({ ...formData, rightMoodId: value }),
-                  "Émotion personnage droite",
-                  'right'
-                )}
               </div>
             )}
           </div>

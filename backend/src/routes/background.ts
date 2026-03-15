@@ -52,9 +52,9 @@ router.get("/detail/:id", async (req: Request, res: Response) => {
 // POST /api/backgrounds - Créer un nouveau background
 router.post("/", async (req: Request, res: Response) => {
   try {
-    const { projectId, name, imageUrl } = req.body;
+    const { projectId, name, tag, imageUrl } = req.body;
     
-    if (!projectId || !name || !imageUrl) {
+    if (!projectId || !name || !tag || !imageUrl) {
       return res.status(400).json({ error: "Missing required fields" });
     }
     
@@ -62,6 +62,7 @@ router.post("/", async (req: Request, res: Response) => {
       data: {
         projectId,
         name,
+        tag,
         imageUrl
       }
     });
@@ -77,7 +78,7 @@ router.post("/", async (req: Request, res: Response) => {
 router.put("/:id", async (req: Request, res: Response) => {
   try {
     const { id } = req.params;
-    const { name, imageUrl } = req.body;
+    const { name, tag, imageUrl } = req.body;
     
     if (!id) {
       return res.status(400).json({ error: "Background ID is required" });
@@ -87,6 +88,7 @@ router.put("/:id", async (req: Request, res: Response) => {
       where: { id },
       data: {
         ...(name && { name }),
+        ...(tag && { tag }),
         ...(imageUrl && { imageUrl })
       }
     });

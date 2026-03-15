@@ -1,6 +1,5 @@
 import type { Mood } from '../types/index';
-
-const API_BASE_URL = 'http://localhost:4000/api';
+import API_BASE_URL from '../config/api';
 
 export const moodService = {
   // Get all moods for a project
@@ -18,14 +17,14 @@ export const moodService = {
   },
 
   // Create a mood
-  async createMood(projectId: string, name: string): Promise<Mood> {
+  async createMood(projectId: string, name: string, tag: string): Promise<Mood> {
     try {
       const response = await fetch(`${API_BASE_URL}/moods/project/${projectId}`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify({ name }),
+        body: JSON.stringify({ name, tag }),
       });
       
       if (!response.ok) {
@@ -40,14 +39,14 @@ export const moodService = {
   },
 
   // Update a mood
-  async updateMood(moodId: string, name: string): Promise<Mood> {
+  async updateMood(moodId: string, name: string, tag?: string): Promise<Mood> {
     try {
       const response = await fetch(`${API_BASE_URL}/moods/${moodId}`, {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify({ name }),
+        body: JSON.stringify({ name, tag }),
       });
       
       if (!response.ok) {

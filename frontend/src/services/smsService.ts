@@ -1,15 +1,16 @@
 import type { SMSConversation, SMSMessage, SMSQuestion, SMSReactions } from '../types/index';
-
-const API_BASE_URL = 'http://localhost:4000/api';
+import API_BASE_URL from '../config/api';
 
 export interface CreateSMSConversationRequest {
   projectId: string;
   name: string;
+  tag: string;
   folderId?: string;
 }
 
 export interface UpdateSMSConversationRequest {
   name: string;
+  tag?: string;
   folderId?: string;
 }
 

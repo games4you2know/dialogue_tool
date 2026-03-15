@@ -17,8 +17,8 @@ interface DialogueManagerProps {
 
 interface DialogueFormData {
   name: string;
+  tag: string;
   description: string;
-  isStartDialogue: boolean;
   folderId: string;
   backgroundId: string;
 }
@@ -37,8 +37,8 @@ const DialogueManager: React.FC<DialogueManagerProps> = ({ projectId, onEditDial
   const [folders, setFolders] = useState<any[]>([]);
   const [formData, setFormData] = useState<DialogueFormData>({
     name: '',
+    tag: '',
     description: '',
-    isStartDialogue: false,
     folderId: '',
     backgroundId: ''
   });
@@ -84,7 +84,7 @@ const DialogueManager: React.FC<DialogueManagerProps> = ({ projectId, onEditDial
   }, [projectId]);
 
   const resetForm = () => {
-    setFormData({ name: '', description: '', isStartDialogue: false, folderId: selectedFolderId || '', backgroundId: '' });
+    setFormData({ name: '', tag: '', description: '', folderId: selectedFolderId || '', backgroundId: '' });
     if (descriptionEditor) {
       descriptionEditor.commands.setContent('');
     }
@@ -98,8 +98,8 @@ const DialogueManager: React.FC<DialogueManagerProps> = ({ projectId, onEditDial
       const newDialogue: CreateDialogueRequest = {
         projectId,
         name: formData.name,
+        tag: formData.tag || formData.name.toUpperCase().replace(/\s+/g, '_'),
         description: formData.description || undefined,
-        isStartDialogue: formData.isStartDialogue,
         folderId: formData.folderId || undefined,
         backgroundId: formData.backgroundId || undefined
       };
@@ -121,7 +121,6 @@ const DialogueManager: React.FC<DialogueManagerProps> = ({ projectId, onEditDial
       const updateData: UpdateDialogueRequest = {
         name: formData.name,
         description: formData.description || undefined,
-        isStartDialogue: formData.isStartDialogue,
         backgroundId: formData.backgroundId || undefined
       };
       
@@ -151,8 +150,8 @@ const DialogueManager: React.FC<DialogueManagerProps> = ({ projectId, onEditDial
     const description = dialogue.description || '';
     setFormData({
       name: dialogue.name,
+      tag: dialogue.tag,
       description: description,
-      isStartDialogue: dialogue.isStartDialogue || false,
       folderId: dialogue.folderId || '',
       backgroundId: dialogue.backgroundId || ''
     });
@@ -238,14 +237,6 @@ const DialogueManager: React.FC<DialogueManagerProps> = ({ projectId, onEditDial
           <div key={dialogue.id} className="bg-white border border-gray-200 rounded-lg p-4 shadow-sm">
             <div className="flex justify-between items-start mb-3">
               <div className="flex-1">
-                <div className="flex items-center gap-2 mb-1">
-                  <h3 className="font-semibold text-gray-800">{dialogue.name}</h3>
-                  {dialogue.isStartDialogue && (
-                    <span className="bg-green-100 text-green-800 text-xs px-2 py-1 rounded-full">
-                      Dialogue de départ
-                    </span>
-                  )}
-                </div>
                 {dialogue.description && (
                   <div className="text-gray-600 text-sm mb-2" dangerouslySetInnerHTML={{ __html: dialogue.description }} />
                 )}
@@ -421,18 +412,6 @@ const DialogueManager: React.FC<DialogueManagerProps> = ({ projectId, onEditDial
                     </option>
                   ))}
                 </select>
-              </div>
-
-              <div className="mb-4">
-                <label className="flex items-center">
-                  <input
-                    type="checkbox"
-                    checked={formData.isStartDialogue}
-                    onChange={(e) => setFormData({ ...formData, isStartDialogue: e.target.checked })}
-                    className="mr-2"
-                  />
-                  <span className="text-sm text-gray-700">Dialogue de départ</span>
-                </label>
               </div>
 
               <div className="flex gap-3">

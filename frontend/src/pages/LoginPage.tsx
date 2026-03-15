@@ -3,7 +3,7 @@ import { useNavigate, Link } from "react-router-dom";
 import { useAuth } from "../contexts/AuthContext";
 
 export default function LoginPage() {
-  const [email, setEmail] = useState("");
+  const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
@@ -16,7 +16,7 @@ export default function LoginPage() {
     setLoading(true);
 
     try {
-      await login(email, password);
+      await login(username, password);
       navigate("/projects");
     } catch (err: any) {
       setError(err.message || "Erreur lors de la connexion");
@@ -41,17 +41,17 @@ export default function LoginPage() {
           )}
 
           <div>
-            <label htmlFor="email" className="block text-sm font-medium text-gray-300 mb-2">
-              Email
+            <label htmlFor="username" className="block text-sm font-medium text-gray-300 mb-2">
+              Pseudo
             </label>
             <input
-              id="email"
-              type="email"
+              id="username"
+              type="text"
               required
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
+              value={username}
+              onChange={(e) => setUsername(e.target.value)}
               className="w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:border-blue-500"
-              placeholder="votre@email.com"
+              placeholder="VotrePseudo"
             />
           </div>
 

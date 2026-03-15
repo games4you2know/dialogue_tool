@@ -22,7 +22,6 @@ const Header: React.FC<HeaderProps> = ({
     navigate('/login');
   };
 
-  // Ne pas afficher le header sur les pages de login/register
   if (location.pathname === '/login' || location.pathname === '/register') {
     return null;
   }
@@ -44,7 +43,7 @@ const Header: React.FC<HeaderProps> = ({
                 onClick={() => navigate('/profile')}
                 className="text-sm text-gray-600 hover:text-gray-900 flex items-center space-x-1"
               >
-                <span>{user.name}</span>
+                <span>{user.username}</span>
               </button>
               <button
                 onClick={handleLogout}

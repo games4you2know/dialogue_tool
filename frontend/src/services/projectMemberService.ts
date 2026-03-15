@@ -1,6 +1,5 @@
 import { authService } from "./authService";
-
-const API_BASE_URL = "http://localhost:4000/api";
+import API_BASE_URL from '../config/api';
 
 export interface ProjectMember {
   id: string;
@@ -10,8 +9,7 @@ export interface ProjectMember {
   createdAt: string;
   user: {
     id: string;
-    name: string;
-    email: string;
+    username: string;
   };
 }
 
@@ -32,14 +30,14 @@ export const projectMemberService = {
   },
 
   // Ajouter un membre à un projet
-  async addMember(projectId: string, email: string, role: string = "member"): Promise<ProjectMember> {
+  async addMember(projectId: string, username: string, role: string = "member"): Promise<ProjectMember> {
     const response = await fetch(`${API_BASE_URL}/project-members/project/${projectId}`, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
         ...authService.getAuthHeader(),
       },
-      body: JSON.stringify({ email, role }),
+      body: JSON.stringify({ username, role }),
     });
 
     if (!response.ok) {

@@ -8,9 +8,6 @@ const router = Router();
 // Get all projects
 router.get("/", authMiddleware, async (req, res) => {
   try {
-    console.log("Fetching all projects...");
-    
-    // Récupérer les projets où l'utilisateur est propriétaire ou membre
     const ownedProjects = await prisma.project.findMany({
       where: {
         userId: (req as any).userId,
@@ -23,8 +20,7 @@ router.get("/", authMiddleware, async (req, res) => {
             user: {
               select: {
                 id: true,
-                name: true,
-                email: true,
+                username: true,
               },
             },
           },
@@ -64,7 +60,6 @@ router.get("/", authMiddleware, async (req, res) => {
       orderBy: { updatedAt: 'desc' }
     });
 
-    // Récupérer les projets où l'utilisateur est membre
     const memberProjects = await prisma.project.findMany({
       where: {
         members: {
@@ -73,7 +68,7 @@ router.get("/", authMiddleware, async (req, res) => {
           },
         },
         userId: {
-          not: (req as any).userId, // Exclure les projets déjà dans ownedProjects
+          not: (req as any).userId,
         },
       },
       include: { 
@@ -84,8 +79,7 @@ router.get("/", authMiddleware, async (req, res) => {
             user: {
               select: {
                 id: true,
-                name: true,
-                email: true,
+                username: true,
               },
             },
           },
@@ -126,7 +120,6 @@ router.get("/", authMiddleware, async (req, res) => {
     });
 
     const projects = [...ownedProjects, ...memberProjects];
-    console.log(`Found ${projects.length} projects`);
     res.json(projects);
   } catch (error) {
     console.error("Error fetching projects:", error);
@@ -138,6 +131,8 @@ router.get("/", authMiddleware, async (req, res) => {
 router.get("/:projectId", authMiddleware, async (req, res) => {
   try {
     const { projectId } = req.params;
+    if (!projectId) return res.status(400).json({ error: "Project ID is required" });
+    
     const project = await prisma.project.findUnique({
       where: { id: projectId },
       include: { 
@@ -193,7 +188,6 @@ router.post("/", authMiddleware, async (req, res) => {
     
     const userId = (req as any).userId;
     
-    // Créer le projet
     const project = await prisma.project.create({ 
       data: { 
         name: name.trim(), 
@@ -202,7 +196,6 @@ router.post("/", authMiddleware, async (req, res) => {
       }
     });
 
-    // Ajouter automatiquement le créateur comme membre avec le rôle owner
     await prisma.projectMember.create({
       data: {
         projectId: project.id,
@@ -221,6 +214,8 @@ router.post("/", authMiddleware, async (req, res) => {
 router.put("/:projectId", authMiddleware, async (req, res) => {
   try {
     const { projectId } = req.params;
+    if (!projectId) return res.status(400).json({ error: "Project ID is required" });
+    
     const { name, description } = req.body;
     
     if (!name?.trim()) {
@@ -248,6 +243,8 @@ router.put("/:projectId", authMiddleware, async (req, res) => {
 router.delete("/:projectId", authMiddleware, async (req, res) => {
   try {
     const { projectId } = req.params;
+    if (!projectId) return res.status(400).json({ error: "Project ID is required" });
+    
     await prisma.project.delete({
       where: { id: projectId }
     });
@@ -264,6 +261,8 @@ router.delete("/:projectId", authMiddleware, async (req, res) => {
 router.get("/:projectId/export", authMiddleware, async (req, res) => {
   try {
     const { projectId } = req.params;
+    if (!projectId) return res.status(400).json({ error: "Project ID is required" });
+    
     const project = await prisma.project.findUnique({
       where: { id: projectId },
       include: {
@@ -276,18 +275,12 @@ router.get("/:projectId/export", authMiddleware, async (req, res) => {
             characters: {
               include: {
                 character: {
-                  include: {
-                    moods: true // Inclure les moods des personnages du dialogue
-                  }
                 }
               }
             },
             lines: {
               include: {
                 character: {
-                  include: {
-                    moods: true // Inclure les moods du personnage de la ligne
-                  }
                 },
                 choices: {
                   orderBy: { id: 'asc' }
@@ -300,22 +293,16 @@ router.get("/:projectId/export", authMiddleware, async (req, res) => {
         },
         smsConversations: {
           include: {
-            folder: true, // Inclure le dossier de la conversation
+            folder: true,
             participants: {
               include: {
                 character: {
-                  include: {
-                    moods: true // Inclure les moods des participants
-                  }
                 }
               }
             },
             messages: {
               include: {
                 character: {
-                  include: {
-                    moods: true // Inclure les moods du personnage du message
-                  }
                 },
                 questions: {
                   include: {
@@ -334,43 +321,64 @@ router.get("/:projectId/export", authMiddleware, async (req, res) => {
     });
     
     if (!project) return res.status(404).json({ error: "Project not found" });
+
+    const characters = await prisma.character.findMany({
+      where: { projectId }
+    });
+    const moods = await prisma.mood.findMany({
+      where: { projectId }
+    });
+
+    const characterTagMap = new Map(characters.map(c => [c.id, c.tag]));
+    const moodTagMap = new Map(moods.map(m => [m.id, m.tag]));
     
     const exportJson = {
-      dialogues: project.dialogues.map(dialogue => ({
-        backgroundName: dialogue.background?.name,
-        lines: dialogue.lines.map(line => ({
-          order: line.order,
-          characterTag: line.character.tag,
-          text: line.text,
-          displayedCharacterId: line.displayedCharacterId,
-          leftCharacterId: line.leftCharacterId,
-          rightCharacterId: line.rightCharacterId,
-          displayedMoodId: line.displayedMoodId,
-          leftMoodId: line.leftMoodId,
-          rightMoodId: line.rightMoodId,
-          conditions: line.conditions,
-          actions: line.actions,
-          choices: line.choices
-        })),
+      dialogues: project.dialogues.map((dialogue: any) => ({
+        tag: dialogue.tag,
+        backgroundTag: dialogue.background?.tag || null,
+        lines: dialogue.lines.map((line: any) => {
+          const displayedCharacterTag = line.displayedCharacterId ? characterTagMap.get(line.displayedCharacterId) || null : null;
+          const leftCharacterTag = line.leftCharacterId ? characterTagMap.get(line.leftCharacterId) || null : null;
+          const rightCharacterTag = line.rightCharacterId ? characterTagMap.get(line.rightCharacterId) || null : null;
+          const displayedMoodTag = line.displayedMoodId ? moodTagMap.get(line.displayedMoodId) || null : null;
+          const leftMoodTag = line.leftMoodId ? moodTagMap.get(line.leftMoodId) || null : null;
+          const rightMoodTag = line.rightMoodId ? moodTagMap.get(line.rightMoodId) || null : null;
+
+          const hasSingleCharacter = displayedCharacterTag && !leftCharacterTag && !rightCharacterTag;
+
+          return {
+            order: line.order,
+            characterTag: line.character?.tag || null,
+            text: line.text,
+            leftCharacterTag: hasSingleCharacter ? displayedCharacterTag : leftCharacterTag,
+            rightCharacterTag: hasSingleCharacter ? null : rightCharacterTag,
+            leftMoodTag: hasSingleCharacter ? displayedMoodTag : leftMoodTag,
+            rightMoodTag: hasSingleCharacter ? null : rightMoodTag,
+            leftCharacterActive: hasSingleCharacter ? true : (line.leftCharacterActive || false),
+            rightCharacterActive: hasSingleCharacter ? false : (line.rightCharacterActive || false),
+            choices: line.choices
+          };
+        }),
       })),
-      smsConversations: project.smsConversations.map(conversation => ({
+      smsConversations: project.smsConversations.map((conversation: any) => ({
+        tag: conversation.tag,
         isGroupChat: conversation.isGroupChat,
-        participants: conversation.participants.map(p => p.character),
-        messages: conversation.messages.map(message => ({
-          characterTag: message.character.tag,
-          text: message.text,
+        participants: conversation.participants.map((p: any) => p.character.tag),
+        messages: conversation.messages.map((message: any) => ({
+          senderTag: message.character.tag,
+          content: message.text,
           timestamp: message.timestamp,
           isRead: message.isRead,
-          messageType: message.messageType,
-          attachmentUrl: message.attachmentUrl,
-          questions: message.questions.map(question => ({
+          questions: message.questions.map((question: any, index: number) => ({
+            order: index,
             content: question.content,
-            positiveReactions: JSON.parse(question.positiveReactions),
-            negativeReactions: JSON.parse(question.negativeReactions),
-            answers: question.answers.map(answer => ({
+            reactions: {
+              positive: JSON.parse(question.positiveReactions),
+              negative: JSON.parse(question.negativeReactions)
+            },
+            answers: question.answers.map((answer: any) => ({
               content: answer.content,
-              isCorrect: answer.isCorrect,
-              order: answer.order
+              isCorrect: answer.isCorrect
             }))
           }))
         })),

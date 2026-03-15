@@ -1,20 +1,19 @@
 import type { Dialogue, DialogueLine, DialogueChoice } from '../types/index';
-
-const API_BASE_URL = 'http://localhost:4000/api';
+import API_BASE_URL from '../config/api';
 
 export interface CreateDialogueRequest {
   projectId: string;
   name: string;
+  tag: string;
   description?: string;
-  isStartDialogue?: boolean;
   folderId?: string;
   backgroundId?: string;
 }
 
 export interface UpdateDialogueRequest {
   name: string;
+  tag?: string;
   description?: string;
-  isStartDialogue?: boolean;
   folderId?: string;
   backgroundId?: string;
 }
@@ -29,6 +28,8 @@ export interface CreateDialogueLineRequest {
   displayedMoodId?: string;
   leftMoodId?: string;
   rightMoodId?: string;
+  leftCharacterActive?: boolean;
+  rightCharacterActive?: boolean;
 }
 
 export interface UpdateDialogueLineRequest {
@@ -41,6 +42,8 @@ export interface UpdateDialogueLineRequest {
   displayedMoodId?: string;
   leftMoodId?: string;
   rightMoodId?: string;
+  leftCharacterActive?: boolean;
+  rightCharacterActive?: boolean;
 }
 
 export interface CreateDialogueChoiceRequest {

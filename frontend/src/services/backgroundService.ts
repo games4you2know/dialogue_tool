@@ -1,7 +1,8 @@
 import axios from 'axios';
 import type { Background } from '../types';
+import API_BASE_URL from '../config/api';
 
-const API_URL = 'http://localhost:4000/api';
+const API_URL = API_BASE_URL;
 
 export const backgroundService = {
   // Récupérer tous les backgrounds d'un projet
@@ -17,13 +18,13 @@ export const backgroundService = {
   },
 
   // Créer un nouveau background
-  async createBackground(data: { projectId: string; name: string; imageUrl: string }): Promise<Background> {
+  async createBackground(data: { projectId: string; name: string; tag: string; imageUrl: string }): Promise<Background> {
     const response = await axios.post(`${API_URL}/backgrounds`, data);
     return response.data;
   },
 
   // Mettre à jour un background
-  async updateBackground(id: string, data: { name?: string; imageUrl?: string }): Promise<Background> {
+  async updateBackground(id: string, data: { name?: string; tag?: string; imageUrl?: string }): Promise<Background> {
     const response = await axios.put(`${API_URL}/backgrounds/${id}`, data);
     return response.data;
   },

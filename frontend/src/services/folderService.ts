@@ -1,7 +1,8 @@
 import axios from 'axios';
 import type { Folder } from '../types';
+import API_BASE_URL from '../config/api';
 
-const API_URL = 'http://localhost:4000/api';
+const API_URL = API_BASE_URL;
 
 export interface CreateFolderRequest {
   projectId: string;

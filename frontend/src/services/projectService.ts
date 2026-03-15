@@ -1,7 +1,6 @@
 import type { Project } from '../types';
 import { authService } from './authService';
-
-const API_BASE_URL = 'http://localhost:4000/api';
+import API_BASE_URL from '../config/api';
 
 export interface ApiProject {
   id: string;
@@ -142,11 +141,19 @@ export const projectService = {
       });
       
       if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.error || 'Failed to export project');
+        let errorMessage = 'Failed to export project';
+        try {
+          const errorData = await response.json();
+          errorMessage = errorData.error || errorMessage;
+        } catch {
+          errorMessage = `HTTP ${response.status}: ${response.statusText}`;
+        }
+        throw new Error(errorMessage);
       }
       
-      const blob = await response.blob();
+      const jsonData = await response.json();
+      const jsonString = JSON.stringify(jsonData, null, 2);
+      const blob = new Blob([jsonString], { type: 'application/json' });
       const url = window.URL.createObjectURL(blob);
       const a = document.createElement('a');
       a.style.display = 'none';

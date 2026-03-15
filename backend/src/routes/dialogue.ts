@@ -64,10 +64,14 @@ router.get("/:dialogueId", async (req, res) => {
 // Create dialogue
 router.post("/", async (req, res) => {
   try {
-    const { projectId, name, description, isStartDialogue, folderId, backgroundId } = req.body;
+    const { projectId, name, tag, description, folderId, backgroundId } = req.body;
     
     if (!name?.trim()) {
       return res.status(400).json({ error: 'Dialogue name is required' });
+    }
+    
+    if (!tag?.trim()) {
+      return res.status(400).json({ error: 'Dialogue tag is required' });
     }
     
     if (!projectId) {
@@ -78,8 +82,8 @@ router.post("/", async (req, res) => {
       data: {
         projectId,
         name: name.trim(),
+        tag: tag.trim(),
         description: description?.trim() || null,
-        isStartDialogue: isStartDialogue || false,
         folderId: folderId || null,
         backgroundId: backgroundId || null
       },
@@ -109,7 +113,7 @@ router.post("/", async (req, res) => {
 router.put("/:dialogueId", async (req, res) => {
   try {
     const { dialogueId } = req.params;
-    const { name, description, isStartDialogue, folderId, backgroundId } = req.body;
+    const { name, tag, description, folderId, backgroundId } = req.body;
     
     if (!name?.trim()) {
       return res.status(400).json({ error: 'Dialogue name is required' });
@@ -119,8 +123,8 @@ router.put("/:dialogueId", async (req, res) => {
       where: { id: dialogueId },
       data: {
         name: name.trim(),
+        ...(tag && { tag: tag.trim() }),
         description: description?.trim() || null,
-        isStartDialogue: isStartDialogue || false,
         folderId: folderId || null,
         backgroundId: backgroundId || null
       },

@@ -12,37 +12,31 @@ const SALT_ROUNDS = 10;
 // Register
 router.post("/register", async (req, res) => {
   try {
-    const { email, password, name } = req.body;
+    const { username, password } = req.body;
 
-    // Validation
-    if (!email || !password || !name) {
-      return res.status(400).json({ error: "Email, password et nom sont requis" });
+    if (!username || !password) {
+      return res.status(400).json({ error: "Pseudo et mot de passe sont requis" });
     }
 
-    // Vérifier si l'utilisateur existe déjà
     const existingUser = await prisma.user.findUnique({
-      where: { email },
+      where: { username },
     });
 
     if (existingUser) {
-      return res.status(400).json({ error: "Cet email est déjà utilisé" });
+      return res.status(400).json({ error: "Ce pseudo est déjà utilisé" });
     }
 
-    // Hasher le mot de passe
     const hashedPassword = await bcrypt.hash(password, SALT_ROUNDS);
 
-    // Créer l'utilisateur
     const user = await prisma.user.create({
       data: {
-        email,
+        username,
         password: hashedPassword,
-        name,
       },
     });
 
-    // Générer le token JWT
     const token = jwt.sign(
-      { userId: user.id, email: user.email },
+      { userId: user.id, username: user.username },
       JWT_SECRET,
       { expiresIn: "7d" }
     );
@@ -51,8 +45,7 @@ router.post("/register", async (req, res) => {
       token,
       user: {
         id: user.id,
-        email: user.email,
-        name: user.name,
+        username: user.username,
       },
     });
   } catch (error) {
@@ -64,32 +57,28 @@ router.post("/register", async (req, res) => {
 // Login
 router.post("/login", async (req, res) => {
   try {
-    const { email, password } = req.body;
+    const { username, password } = req.body;
 
-    // Validation
-    if (!email || !password) {
-      return res.status(400).json({ error: "Email et mot de passe sont requis" });
+    if (!username || !password) {
+      return res.status(400).json({ error: "Pseudo et mot de passe sont requis" });
     }
 
-    // Trouver l'utilisateur
     const user = await prisma.user.findUnique({
-      where: { email },
+      where: { username },
     });
 
     if (!user) {
-      return res.status(401).json({ error: "Email ou mot de passe incorrect" });
+      return res.status(401).json({ error: "Pseudo ou mot de passe incorrect" });
     }
 
-    // Vérifier le mot de passe
     const isPasswordValid = await bcrypt.compare(password, user.password);
 
     if (!isPasswordValid) {
-      return res.status(401).json({ error: "Email ou mot de passe incorrect" });
+      return res.status(401).json({ error: "Pseudo ou mot de passe incorrect" });
     }
 
-    // Générer le token JWT
     const token = jwt.sign(
-      { userId: user.id, email: user.email },
+      { userId: user.id, username: user.username },
       JWT_SECRET,
       { expiresIn: "7d" }
     );
@@ -98,8 +87,7 @@ router.post("/login", async (req, res) => {
       token,
       user: {
         id: user.id,
-        email: user.email,
-        name: user.name,
+        username: user.username,
       },
     });
   } catch (error) {
@@ -108,7 +96,6 @@ router.post("/login", async (req, res) => {
   }
 });
 
-// Vérifier le token (route optionnelle pour vérifier si l'utilisateur est toujours authentifié)
 router.get("/me", async (req, res) => {
   try {
     const authHeader = req.headers.authorization;
@@ -120,14 +107,13 @@ router.get("/me", async (req, res) => {
     const token = authHeader.substring(7);
     
     try {
-      const decoded = jwt.verify(token, JWT_SECRET) as { userId: string; email: string };
+      const decoded = jwt.verify(token, JWT_SECRET) as { userId: string; username: string };
       
       const user = await prisma.user.findUnique({
         where: { id: decoded.userId },
         select: {
           id: true,
-          email: true,
-          name: true,
+          username: true,
         },
       });
 

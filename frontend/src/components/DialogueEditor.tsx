@@ -29,6 +29,8 @@ interface LineFormData {
   displayedMoodId: string;
   leftMoodId: string;
   rightMoodId: string;
+  leftCharacterActive: boolean;
+  rightCharacterActive: boolean;
 }
 
 const DialogueEditor: React.FC<DialogueEditorProps> = ({ dialogue, projectId, onClose }) => {
@@ -48,7 +50,9 @@ const DialogueEditor: React.FC<DialogueEditorProps> = ({ dialogue, projectId, on
     rightCharacterId: '',
     displayedMoodId: '',
     leftMoodId: '',
-    rightMoodId: ''
+    rightMoodId: '',
+    leftCharacterActive: false,
+    rightCharacterActive: false
   });
   const [choiceText, setChoiceText] = useState('');
   const [displaySettings, setDisplaySettings] = useState<{
@@ -59,6 +63,8 @@ const DialogueEditor: React.FC<DialogueEditorProps> = ({ dialogue, projectId, on
     displayedMoodId: string;
     leftMoodId: string;
     rightMoodId: string;
+    leftCharacterActive: boolean;
+    rightCharacterActive: boolean;
   }>({
     displayMode: 'one',
     displayedCharacterId: '',
@@ -66,7 +72,9 @@ const DialogueEditor: React.FC<DialogueEditorProps> = ({ dialogue, projectId, on
     rightCharacterId: '',
     displayedMoodId: '',
     leftMoodId: '',
-    rightMoodId: ''
+    rightMoodId: '',
+    leftCharacterActive: false,
+    rightCharacterActive: false
   });
 
   const { editor } = useDialogueLineEditor(selectedLine, reload);
@@ -91,12 +99,14 @@ const DialogueEditor: React.FC<DialogueEditorProps> = ({ dialogue, projectId, on
         rightCharacterId: lineFormData.displayMode === 'two' ? (lineFormData.rightCharacterId || undefined) : undefined,
         displayedMoodId: lineFormData.displayMode === 'one' ? (lineFormData.displayedMoodId || undefined) : undefined,
         leftMoodId: lineFormData.displayMode === 'two' ? (lineFormData.leftMoodId || undefined) : undefined,
-        rightMoodId: lineFormData.displayMode === 'two' ? (lineFormData.rightMoodId || undefined) : undefined
+        rightMoodId: lineFormData.displayMode === 'two' ? (lineFormData.rightMoodId || undefined) : undefined,
+        leftCharacterActive: lineFormData.displayMode === 'two' ? lineFormData.leftCharacterActive : undefined,
+        rightCharacterActive: lineFormData.displayMode === 'two' ? lineFormData.rightCharacterActive : undefined
       };
 
       await dialogueService.addDialogueLine(currentDialogue.id, newLine);
       await reload();
-      setLineFormData({ characterId: '', text: '', order: 0, displayMode: 'one', displayedCharacterId: '', leftCharacterId: '', rightCharacterId: '', displayedMoodId: '', leftMoodId: '', rightMoodId: '' });
+      setLineFormData({ characterId: '', text: '', order: 0, displayMode: 'one', displayedCharacterId: '', leftCharacterId: '', rightCharacterId: '', displayedMoodId: '', leftMoodId: '', rightMoodId: '', leftCharacterActive: false, rightCharacterActive: false });
       setShowAddLineForm(false);
     } catch (err) {
       setError('Erreur lors de l\'ajout de la ligne');
@@ -152,7 +162,8 @@ const DialogueEditor: React.FC<DialogueEditorProps> = ({ dialogue, projectId, on
 
   const handleCreateMood = async (name: string) => {
     try {
-      await moodService.createMood(projectId, name);
+      const tag = name.toUpperCase().replace(/\s+/g, '_');
+      await moodService.createMood(projectId, name, tag);
       await reload();
     } catch (err) {
       setError('Erreur lors de la création de l\'émotion');
@@ -167,7 +178,6 @@ const DialogueEditor: React.FC<DialogueEditorProps> = ({ dialogue, projectId, on
       await dialogueService.updateDialogue(currentDialogue.id, {
         name: currentDialogue.name,
         description: currentDialogue.description,
-        isStartDialogue: currentDialogue.isStartDialogue,
         backgroundId: backgroundId || undefined
       });
       await reload();
@@ -191,7 +201,9 @@ const DialogueEditor: React.FC<DialogueEditorProps> = ({ dialogue, projectId, on
         rightCharacterId: displaySettings.displayMode === 'two' ? (displaySettings.rightCharacterId || undefined) : undefined,
         displayedMoodId: displaySettings.displayMode === 'one' ? (displaySettings.displayedMoodId || undefined) : undefined,
         leftMoodId: displaySettings.displayMode === 'two' ? (displaySettings.leftMoodId || undefined) : undefined,
-        rightMoodId: displaySettings.displayMode === 'two' ? (displaySettings.rightMoodId || undefined) : undefined
+        rightMoodId: displaySettings.displayMode === 'two' ? (displaySettings.rightMoodId || undefined) : undefined,
+        leftCharacterActive: displaySettings.displayMode === 'two' ? displaySettings.leftCharacterActive : undefined,
+        rightCharacterActive: displaySettings.displayMode === 'two' ? displaySettings.rightCharacterActive : undefined
       };
       
       await dialogueService.updateDialogueLine(selectedLine.id, updateData);
@@ -214,7 +226,9 @@ const DialogueEditor: React.FC<DialogueEditorProps> = ({ dialogue, projectId, on
       rightCharacterId: selectedLine.rightCharacterId || '',
       displayedMoodId: selectedLine.displayedMoodId || '',
       leftMoodId: selectedLine.leftMoodId || '',
-      rightMoodId: selectedLine.rightMoodId || ''
+      rightMoodId: selectedLine.rightMoodId || '',
+      leftCharacterActive: selectedLine.leftCharacterActive || false,
+      rightCharacterActive: selectedLine.rightCharacterActive || false
     });
     setEditingDisplaySettings(true);
   };

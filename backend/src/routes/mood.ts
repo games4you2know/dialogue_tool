@@ -40,10 +40,14 @@ router.get("/:moodId", async (req, res) => {
 router.post("/project/:projectId", async (req, res) => {
   try {
     const { projectId } = req.params;
-    const { name } = req.body;
+    const { name, tag } = req.body;
     
     if (!name?.trim()) {
       return res.status(400).json({ error: 'Mood name is required' });
+    }
+    
+    if (!tag?.trim()) {
+      return res.status(400).json({ error: 'Mood tag is required' });
     }
     
     const project = await prisma.project.findUnique({
@@ -57,6 +61,7 @@ router.post("/project/:projectId", async (req, res) => {
     const mood = await prisma.mood.create({
       data: {
         name: name.trim(),
+        tag: tag.trim(),
         projectId
       }
     });
@@ -71,7 +76,7 @@ router.post("/project/:projectId", async (req, res) => {
 router.put("/:moodId", async (req, res) => {
   try {
     const { moodId } = req.params;
-    const { name } = req.body;
+    const { name, tag } = req.body;
     
     if (!name?.trim()) {
       return res.status(400).json({ error: 'Mood name is required' });
@@ -79,7 +84,10 @@ router.put("/:moodId", async (req, res) => {
     
     const mood = await prisma.mood.update({
       where: { id: moodId },
-      data: { name: name.trim() }
+      data: { 
+        name: name.trim(),
+        ...(tag && { tag: tag.trim() })
+      }
     });
     
     res.json(mood);

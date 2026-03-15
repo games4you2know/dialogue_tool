@@ -10,7 +10,6 @@ router.get("/project/:projectId", authMiddleware, async (req, res) => {
   try {
     const { projectId } = req.params;
     
-    // Vérifier que l'utilisateur a accès au projet
     const member = await prisma.projectMember.findUnique({
       where: {
         projectId_userId: {
@@ -30,8 +29,7 @@ router.get("/project/:projectId", authMiddleware, async (req, res) => {
         user: {
           select: {
             id: true,
-            name: true,
-            email: true,
+            username: true,
           },
         },
       },
@@ -49,9 +47,8 @@ router.get("/project/:projectId", authMiddleware, async (req, res) => {
 router.post("/project/:projectId", authMiddleware, async (req, res) => {
   try {
     const { projectId } = req.params;
-    const { email, role = "member" } = req.body;
+    const { username, role = "member" } = req.body;
 
-    // Vérifier que l'utilisateur est propriétaire ou admin
     const requesterMember = await prisma.projectMember.findUnique({
       where: {
         projectId_userId: {
@@ -65,16 +62,14 @@ router.post("/project/:projectId", authMiddleware, async (req, res) => {
       return res.status(403).json({ error: "Seuls les propriétaires et admins peuvent ajouter des membres" });
     }
 
-    // Trouver l'utilisateur par email
     const user = await prisma.user.findUnique({
-      where: { email },
+      where: { username },
     });
 
     if (!user) {
       return res.status(404).json({ error: "Utilisateur non trouvé" });
     }
 
-    // Vérifier que l'utilisateur n'est pas déjà membre
     const existingMember = await prisma.projectMember.findUnique({
       where: {
         projectId_userId: {
@@ -88,7 +83,6 @@ router.post("/project/:projectId", authMiddleware, async (req, res) => {
       return res.status(400).json({ error: "Cet utilisateur est déjà membre du projet" });
     }
 
-    // Ajouter le membre
     const member = await prisma.projectMember.create({
       data: {
         projectId,
@@ -99,8 +93,7 @@ router.post("/project/:projectId", authMiddleware, async (req, res) => {
         user: {
           select: {
             id: true,
-            name: true,
-            email: true,
+            username: true,
           },
         },
       },
@@ -127,7 +120,6 @@ router.put("/:memberId", authMiddleware, async (req, res) => {
       return res.status(404).json({ error: "Membre non trouvé" });
     }
 
-    // Vérifier que l'utilisateur est propriétaire ou admin
     const requesterMember = await prisma.projectMember.findUnique({
       where: {
         projectId_userId: {
@@ -141,7 +133,6 @@ router.put("/:memberId", authMiddleware, async (req, res) => {
       return res.status(403).json({ error: "Seuls les propriétaires et admins peuvent modifier les rôles" });
     }
 
-    // Ne pas permettre de modifier le rôle du propriétaire
     if (member.role === "owner") {
       return res.status(403).json({ error: "Le rôle du propriétaire ne peut pas être modifié" });
     }
@@ -153,8 +144,7 @@ router.put("/:memberId", authMiddleware, async (req, res) => {
         user: {
           select: {
             id: true,
-            name: true,
-            email: true,
+            username: true,
           },
         },
       },
@@ -180,7 +170,6 @@ router.delete("/:memberId", authMiddleware, async (req, res) => {
       return res.status(404).json({ error: "Membre non trouvé" });
     }
 
-    // Vérifier que l'utilisateur est propriétaire ou admin
     const requesterMember = await prisma.projectMember.findUnique({
       where: {
         projectId_userId: {
@@ -194,7 +183,6 @@ router.delete("/:memberId", authMiddleware, async (req, res) => {
       return res.status(403).json({ error: "Seuls les propriétaires et admins peuvent retirer des membres" });
     }
 
-    // Ne pas permettre de retirer le propriétaire
     if (member.role === "owner") {
       return res.status(403).json({ error: "Le propriétaire ne peut pas être retiré du projet" });
     }

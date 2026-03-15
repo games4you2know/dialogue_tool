@@ -12,7 +12,7 @@ export default function ProjectMembersPage() {
   const [error, setError] = useState("");
   const [success, setSuccess] = useState("");
   const [showAddModal, setShowAddModal] = useState(false);
-  const [newMemberEmail, setNewMemberEmail] = useState("");
+  const [newMemberUsername, setNewMemberUsername] = useState("");
   const [newMemberRole, setNewMemberRole] = useState("member");
   const [addingMember, setAddingMember] = useState(false);
 
@@ -46,11 +46,11 @@ export default function ProjectMembersPage() {
     setAddingMember(true);
 
     try {
-      const newMember = await projectMemberService.addMember(projectId, newMemberEmail, newMemberRole);
+      const newMember = await projectMemberService.addMember(projectId, newMemberUsername, newMemberRole);
       setMembers([...members, newMember]);
       setSuccess("Membre ajouté avec succès");
       setShowAddModal(false);
-      setNewMemberEmail("");
+      setNewMemberUsername("");
       setNewMemberRole("member");
     } catch (err: any) {
       setError(err.message);
@@ -162,8 +162,7 @@ export default function ProjectMembersPage() {
           <table className="w-full">
             <thead className="bg-gray-700">
               <tr>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-300 uppercase">Nom</th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-300 uppercase">Email</th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-300 uppercase">Pseudo</th>
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-300 uppercase">Rôle</th>
                 {canManageMembers && (
                   <th className="px-6 py-3 text-right text-xs font-medium text-gray-300 uppercase">Actions</th>
@@ -173,8 +172,7 @@ export default function ProjectMembersPage() {
             <tbody className="divide-y divide-gray-700">
               {members.map((member) => (
                 <tr key={member.id}>
-                  <td className="px-6 py-4 text-white">{member.user.name}</td>
-                  <td className="px-6 py-4 text-gray-400">{member.user.email}</td>
+                  <td className="px-6 py-4 text-white">{member.user.username}</td>
                   <td className="px-6 py-4">
                     {canManageMembers && member.role !== "owner" ? (
                       <select
@@ -217,14 +215,14 @@ export default function ProjectMembersPage() {
               <h2 className="text-xl font-bold text-white mb-4">Ajouter un membre</h2>
               <form onSubmit={handleAddMember} className="space-y-4">
                 <div>
-                  <label className="block text-sm font-medium text-gray-300 mb-2">Email</label>
+                  <label className="block text-sm font-medium text-gray-300 mb-2">Pseudo</label>
                   <input
-                    type="email"
+                    type="text"
                     required
-                    value={newMemberEmail}
-                    onChange={(e) => setNewMemberEmail(e.target.value)}
+                    value={newMemberUsername}
+                    onChange={(e) => setNewMemberUsername(e.target.value)}
                     className="w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded-lg text-white focus:outline-none focus:border-blue-500"
-                    placeholder="email@example.com"
+                    placeholder="NomUtilisateur"
                   />
                 </div>
 
@@ -246,7 +244,7 @@ export default function ProjectMembersPage() {
                     type="button"
                     onClick={() => {
                       setShowAddModal(false);
-                      setNewMemberEmail("");
+                      setNewMemberUsername("");
                       setNewMemberRole("member");
                     }}
                     className="px-4 py-2 bg-gray-700 hover:bg-gray-600 text-white rounded-lg transition"

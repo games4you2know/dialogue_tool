@@ -31,8 +31,11 @@ export interface Folder {
 
 export interface Mood {
   id: string;
+  projectId: string;
   name: string;
-  characterId: string;
+  tag: string;
+  createdAt: Date;
+  updatedAt: Date;
 }
 
 export interface Character {
@@ -47,12 +50,14 @@ export interface Background {
   id: string;
   projectId: string;
   name: string;
+  tag: string;
   imageUrl: string;
 }
 
 export interface DialogueLine {
   id: string;
-  characterId: string;
+  characterId?: string;
+  character?: Character;
   text: string;
   order: number;
   displayedCharacterId?: string; // Pour un seul personnage affiché (optionnel, par défaut celui qui parle)
@@ -61,9 +66,9 @@ export interface DialogueLine {
   displayedMoodId?: string; // Mood pour le personnage affiché (mode un personnage)
   leftMoodId?: string; // Mood pour le personnage de gauche (mode deux personnages)
   rightMoodId?: string; // Mood pour le personnage de droite (mode deux personnages)
+  leftCharacterActive?: boolean; // Si le personnage de gauche est actif
+  rightCharacterActive?: boolean; // Si le personnage de droite est actif
   choices?: DialogueChoice[];
-  conditions?: string[];
-  actions?: string[];
 }
 
 export interface DialogueChoice {
@@ -82,10 +87,10 @@ export interface Dialogue {
   backgroundId?: string;
   background?: Background;
   name: string;
+  tag: string;
   description?: string;
   characters: Character[];
   lines: DialogueLine[];
-  isStartDialogue?: boolean;
   tags?: string[];
   createdAt: Date;
   updatedAt: Date;
@@ -129,6 +134,7 @@ export interface SMSConversation {
   projectId: string;
   folderId?: string;
   name: string;
+  tag: string;
   participants: Character[];
   messages: SMSMessage[];
   isGroupChat: boolean;

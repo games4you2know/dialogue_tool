@@ -23,6 +23,7 @@ interface SMSManagerProps {
 
 interface ConversationFormData {
   name: string;
+  tag: string;
   folderId: string;
 }
 
@@ -54,7 +55,7 @@ const SMSManager: React.FC<SMSManagerProps> = ({ projectId }) => {
   const [editingMessage, setEditingMessage] = useState<SMSMessage | null>(null);
   const [showMoveMenu, setShowMoveMenu] = useState<string | null>(null);
   const [folders, setFolders] = useState<any[]>([]);
-  const [conversationFormData, setConversationFormData] = useState<ConversationFormData>({ name: '', folderId: '' });
+  const [conversationFormData, setConversationFormData] = useState<ConversationFormData>({ name: '', tag: '', folderId: '' });
   const [messageFormData, setMessageFormData] = useState<MessageFormData>({
     characterId: '',
     text: '',
@@ -108,7 +109,7 @@ const SMSManager: React.FC<SMSManagerProps> = ({ projectId }) => {
   }, [projectId]);
 
   const resetConversationForm = () => {
-    setConversationFormData({ name: '', folderId: selectedFolderId || '' });
+    setConversationFormData({ name: '', tag: '', folderId: selectedFolderId || '' });
     setEditingConversation(null);
     setShowConversationForm(false);
   };
@@ -137,6 +138,7 @@ const SMSManager: React.FC<SMSManagerProps> = ({ projectId }) => {
       const newConversation: CreateSMSConversationRequest = {
         projectId,
         name: conversationFormData.name,
+        tag: conversationFormData.tag || conversationFormData.name.toUpperCase().replace(/\s+/g, '_'),
         folderId: conversationFormData.folderId || undefined
       };
       
@@ -188,7 +190,6 @@ const SMSManager: React.FC<SMSManagerProps> = ({ projectId }) => {
     
     try {
       if (editingMessage) {
-        // Modifier le message existant
         const updateData: UpdateSMSMessageRequest = {
           characterId: messageFormData.characterId || undefined,
           text: messageFormData.text,
@@ -197,16 +198,14 @@ const SMSManager: React.FC<SMSManagerProps> = ({ projectId }) => {
         
         await smsService.updateSMSMessage(editingMessage.id, updateData);
       } else {
-        // Créer le message
         const newMessage: CreateSMSMessageRequest = {
           characterId: messageFormData.characterId || undefined,
-          text: messageFormData.isQuestion ? '' : messageFormData.text, // Pas de texte si c'est une question pure
+          text: messageFormData.isQuestion ? '' : messageFormData.text,
           timestamp: messageFormData.timestamp
         };
         
         const createdMessage = await smsService.addSMSMessage(selectedConversation.id, newMessage);
         
-        // Si c'est une question, créer la question associée
         if (messageFormData.isQuestion && messageFormData.questionContent.trim()) {
           await smsService.addSMSQuestion(createdMessage.id, {
             content: messageFormData.questionContent,
@@ -245,7 +244,7 @@ const SMSManager: React.FC<SMSManagerProps> = ({ projectId }) => {
 
   const startEditConversation = (conversation: SMSConversation) => {
     setEditingConversation(conversation);
-    setConversationFormData({ name: conversation.name, folderId: conversation.folderId || '' });
+    setConversationFormData({ name: conversation.name, tag: conversation.tag, folderId: conversation.folderId || '' });
     setShowConversationForm(true);
   };
 

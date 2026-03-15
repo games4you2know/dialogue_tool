@@ -97,10 +97,14 @@ router.get("/:conversationId", async (req, res) => {
 // Create SMS conversation
 router.post("/", async (req, res) => {
   try {
-    const { projectId, name, folderId } = req.body;
+    const { projectId, name, tag, folderId } = req.body;
     
     if (!name?.trim()) {
       return res.status(400).json({ error: 'Conversation name is required' });
+    }
+    
+    if (!tag?.trim()) {
+      return res.status(400).json({ error: 'Conversation tag is required' });
     }
     
     if (!projectId) {
@@ -111,6 +115,7 @@ router.post("/", async (req, res) => {
       data: {
         projectId,
         name: name.trim(),
+        tag: tag.trim(),
         folderId: folderId || null
       },
       include: {
@@ -137,7 +142,7 @@ router.post("/", async (req, res) => {
 router.put("/:conversationId", async (req, res) => {
   try {
     const { conversationId } = req.params;
-    const { name, folderId } = req.body;
+    const { name, tag, folderId } = req.body;
     
     if (!name?.trim()) {
       return res.status(400).json({ error: 'Conversation name is required' });
@@ -147,6 +152,7 @@ router.put("/:conversationId", async (req, res) => {
       where: { id: conversationId },
       data: {
         name: name.trim(),
+        ...(tag && { tag: tag.trim() }),
         folderId: folderId || null
       },
       include: {
@@ -195,7 +201,7 @@ router.post("/:conversationId/messages", async (req, res) => {
     const { conversationId } = req.params;
     const { characterId, text, timestamp } = req.body;
     
-    if (!text?.trim()) {
+    if (text === undefined || text === null) {
       return res.status(400).json({ error: 'Message text is required' });
     }
 
@@ -330,12 +336,10 @@ router.put("/questions/:questionId", async (req, res) => {
     const positiveReactions = reactions?.positive || [];
     const negativeReactions = reactions?.negative || [];
 
-    // Delete existing answers
     await prisma.sMSAnswer.deleteMany({
       where: { questionId }
     });
 
-    // Update question and create new answers
     const question = await prisma.sMSQuestion.update({
       where: { id: questionId },
       data: {
