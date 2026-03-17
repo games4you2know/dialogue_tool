@@ -136,7 +136,7 @@ export const BackgroundManager: React.FC<BackgroundManagerProps> = ({ projectId 
 
   const startEdit = (background: Background) => {
     setEditingBackground(background);
-    setFormData({ name: background.name });
+    setFormData({ name: background.name, tag: '' });
     setPreviewUrl(background.imageUrl);
     setShowForm(true);
   };

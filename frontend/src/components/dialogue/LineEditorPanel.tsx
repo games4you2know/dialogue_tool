@@ -18,6 +18,8 @@ interface LineEditorPanelProps {
     displayedMoodId: string;
     leftMoodId: string;
     rightMoodId: string;
+    leftCharacterActive: boolean;
+    rightCharacterActive: boolean;
   };
   onStartEditDisplaySettings: () => void;
   onSaveDisplaySettings: () => void;

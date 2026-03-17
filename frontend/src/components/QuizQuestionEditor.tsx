@@ -1,5 +1,5 @@
-import React, { useState, useEffect } from 'react';
-import type { SMSQuestion, SMSReactions } from '../types/index';
+import React, { useState } from 'react';
+import type { SMSQuestion } from '../types/index';
 import { smsService, type CreateSMSQuestionRequest } from '../services/smsService';
 
 interface QuizQuestionEditorProps {

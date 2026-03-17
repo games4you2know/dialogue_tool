@@ -3,7 +3,7 @@ import { useParams, useNavigate } from 'react-router-dom';
 import { useEditor, EditorContent } from '@tiptap/react';
 import StarterKit from '@tiptap/starter-kit';
 import Placeholder from '@tiptap/extension-placeholder';
-import type { Character, Mood } from '../types/index';
+import type { Character } from '../types/index';
 import { characterService, type UpdateCharacterRequest } from '../services/characterService';
 import '../styles/dialogueEditor.css';
 
@@ -12,7 +12,6 @@ const CharacterDetailsPage: React.FC = () => {
   const navigate = useNavigate();
   
   const [character, setCharacter] = useState<Character | null>(null);
-  const [moods, setMoods] = useState<Mood[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [isEditing, setIsEditing] = useState(false);
@@ -22,8 +21,6 @@ const CharacterDetailsPage: React.FC = () => {
     color: '#3B82F6',
     description: ''
   });
-  const [newMoodName, setNewMoodName] = useState('');
-  const [editingMood, setEditingMood] = useState<{ id: string; name: string } | null>(null);
 
   const descriptionEditor = useEditor({
     extensions: [
@@ -65,20 +62,8 @@ const CharacterDetailsPage: React.FC = () => {
     }
   };
 
-  const loadMoods = async () => {
-    if (!characterId) return;
-    
-    try {
-      const data = await characterService.getMoods(characterId);
-      setMoods(data);
-    } catch (err) {
-      console.error('Error loading moods:', err);
-    }
-  };
-
   useEffect(() => {
     loadCharacter();
-    loadMoods();
   }, [characterId]);
 
   const handleSave = async () => {
@@ -98,41 +83,6 @@ const CharacterDetailsPage: React.FC = () => {
     } catch (err) {
       setError('Erreur lors de la modification du personnage');
       console.error(err);
-    }
-  };
-
-  const handleCreateMood = async () => {
-    if (!characterId || !newMoodName.trim()) return;
-    
-    try {
-      await characterService.createMood(characterId, newMoodName.trim());
-      setNewMoodName('');
-      await loadMoods();
-    } catch (err) {
-      console.error('Error creating mood:', err);
-    }
-  };
-
-  const handleUpdateMood = async (moodId: string, newName: string) => {
-    if (!characterId || !newName.trim()) return;
-    
-    try {
-      await characterService.updateMood(characterId, moodId, newName.trim());
-      setEditingMood(null);
-      await loadMoods();
-    } catch (err) {
-      console.error('Error updating mood:', err);
-    }
-  };
-
-  const handleDeleteMood = async (moodId: string) => {
-    if (!characterId || !confirm('Êtes-vous sûr de vouloir supprimer cette humeur ?')) return;
-    
-    try {
-      await characterService.deleteMood(characterId, moodId);
-      await loadMoods();
-    } catch (err) {
-      console.error('Error deleting mood:', err);
     }
   };
 
