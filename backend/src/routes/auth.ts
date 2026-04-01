@@ -96,6 +96,60 @@ router.post("/login", async (req, res) => {
   }
 });
 
+// Change password
+router.post("/change-password", async (req, res) => {
+  try {
+    const authHeader = req.headers.authorization;
+
+    if (!authHeader || !authHeader.startsWith("Bearer ")) {
+      return res.status(401).json({ error: "Non authentifié" });
+    }
+
+    const token = authHeader.substring(7);
+    let decoded: { userId: string; username: string };
+
+    try {
+      decoded = jwt.verify(token, JWT_SECRET) as { userId: string; username: string };
+    } catch {
+      return res.status(401).json({ error: "Token invalide" });
+    }
+
+    const { currentPassword, newPassword } = req.body;
+
+    if (!currentPassword || !newPassword) {
+      return res.status(400).json({ error: "Mot de passe actuel et nouveau mot de passe sont requis" });
+    }
+
+    if (newPassword.length < 6) {
+      return res.status(400).json({ error: "Le nouveau mot de passe doit contenir au moins 6 caractères" });
+    }
+
+    const user = await prisma.user.findUnique({ where: { id: decoded.userId } });
+
+    if (!user) {
+      return res.status(404).json({ error: "Utilisateur non trouvé" });
+    }
+
+    const isPasswordValid = await bcrypt.compare(currentPassword, user.password);
+
+    if (!isPasswordValid) {
+      return res.status(401).json({ error: "Mot de passe actuel incorrect" });
+    }
+
+    const hashedPassword = await bcrypt.hash(newPassword, SALT_ROUNDS);
+
+    await prisma.user.update({
+      where: { id: decoded.userId },
+      data: { password: hashedPassword },
+    });
+
+    res.json({ message: "Mot de passe changé avec succès" });
+  } catch (error) {
+    console.error("Change password error:", error);
+    res.status(500).json({ error: "Erreur lors du changement de mot de passe" });
+  }
+});
+
 router.get("/me", async (req, res) => {
   try {
     const authHeader = req.headers.authorization;

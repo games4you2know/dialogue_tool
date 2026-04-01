@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { useAuth } from "../contexts/AuthContext";
+import { authService } from "../services/authService";
 import { useNavigate } from "react-router-dom";
 
 export default function ProfilePage() {
@@ -30,8 +31,7 @@ export default function ProfilePage() {
     setLoading(true);
 
     try {
-      // TODO: Implémenter l'appel API pour changer le mot de passe
-      // await authService.changePassword(currentPassword, newPassword);
+      await authService.changePassword(currentPassword, newPassword);
       setSuccess("Mot de passe changé avec succès");
       setCurrentPassword("");
       setNewPassword("");

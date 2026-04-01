@@ -99,6 +99,23 @@ export const authService = {
     }
   },
 
+  changePassword: async (currentPassword: string, newPassword: string): Promise<void> => {
+    const token = authService.getToken();
+    const response = await fetch(`${API_BASE_URL}/auth/change-password`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        ...(token ? { Authorization: `Bearer ${token}` } : {}),
+      },
+      body: JSON.stringify({ currentPassword, newPassword }),
+    });
+
+    if (!response.ok) {
+      const error = await response.json();
+      throw new Error(error.error || "Erreur lors du changement de mot de passe");
+    }
+  },
+
   getAuthHeader: (): { Authorization: string } | {} => {
     const token = authService.getToken();
     return token ? { Authorization: `Bearer ${token}` } : {};
