@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { useParams } from 'react-router-dom';
+import { useParams, useNavigate } from 'react-router-dom';
 import type { Project, Dialogue } from '../types/index';
 import { projectService } from '../services/projectService';
 import CharacterManager from '../components/CharacterManager';
@@ -11,6 +11,7 @@ import MoodManager from '../components/MoodManager';
 
 const ProjectDetailsPage: React.FC = () => {
   const { projectId } = useParams<{ projectId: string }>();
+  const navigate = useNavigate();
   const [project, setProject] = useState<Project | null>(null);
   const [activeTab, setActiveTab] = useState<'characters' | 'backgrounds' | 'moods' | 'dialogues' | 'sms' | 'calls'>('characters');
   const [editingDialogue, setEditingDialogue] = useState<Dialogue | null>(null);
@@ -101,7 +102,7 @@ const ProjectDetailsPage: React.FC = () => {
           </div>
           <div className="flex gap-2">
             <button
-              onClick={() => window.location.href = `/projects/${projectId}/members`}
+              onClick={() => navigate(`/projects/${projectId}/members`)}
               className="bg-purple-600 text-white px-4 py-2 rounded-lg hover:bg-purple-700 transition-colors"
             >
               Gérer les membres
