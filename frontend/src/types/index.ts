@@ -141,6 +141,38 @@ export interface SMSConversation {
   updatedAt: Date;
 }
 
+export interface Call {
+  id: string;
+  projectId: string;
+  characterId?: string;
+  character?: Character;
+  callDate: Date;
+  duration: number;
+  status: number; // 0=missed, 1=incoming, 2=outgoing
+  createdAt: Date;
+  updatedAt: Date;
+}
+
+export interface SocialPost {
+  id: string;
+  projectId: string;
+  content: string;
+  reportReason?: number | null; // null=aucun, 0=menaces, 1=injure, 2=atteinte à la vie privée
+  createdAt: Date;
+  updatedAt: Date;
+}
+
+export interface BankTransaction {
+  id: string;
+  projectId: string;
+  type: number;        // 0=dépense, 1=recette
+  name: string;
+  paymentType: number; // 0=carte, 1=virement, 2=prélèvement
+  amount: number;
+  createdAt: Date;
+  updatedAt: Date;
+}
+
 export interface UnityDialogueExport {
   dialogues: Dialogue[];
   characters: Character[];

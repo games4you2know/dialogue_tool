@@ -313,6 +313,18 @@ router.get("/:projectId/export", authMiddleware, async (req, res) => {
             }
           },
           orderBy: { createdAt: 'asc' }
+        },
+        calls: {
+          include: {
+            character: {}
+          },
+          orderBy: { callDate: 'asc' }
+        },
+        bankTransactions: {
+          orderBy: { createdAt: 'asc' }
+        },
+        socialPosts: {
+          orderBy: { createdAt: 'asc' }
         }
       }
     });
@@ -378,6 +390,22 @@ router.get("/:projectId/export", authMiddleware, async (req, res) => {
             }))
           }))
         })),
+      })),
+      calls: (project as any).calls.map((call: any) => ({
+        contactTag: call.character?.tag || null,
+        callDate: call.callDate,
+        duration: call.duration,
+        status: call.status
+      })),
+      bankTransactions: (project as any).bankTransactions.map((tx: any) => ({
+        type: tx.type,
+        name: tx.name,
+        paymentType: tx.paymentType,
+        amount: tx.amount
+      })),
+      socialPosts: (project as any).socialPosts.map((post: any) => ({
+        content: post.content,
+        reportReason: post.reportReason
       }))
     };
     
