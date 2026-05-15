@@ -68,10 +68,10 @@ router.put("/:transactionId", async (req, res) => {
     const transaction = await prisma.bankTransaction.update({
       where: { id: transactionId },
       data: {
-        type: type !== undefined ? type : undefined,
-        name: name !== undefined ? name : undefined,
-        paymentType: paymentType !== undefined ? paymentType : undefined,
-        amount: amount !== undefined ? amount : undefined
+        ...(type !== undefined && { type }),
+        ...(name !== undefined && { name }),
+        ...(paymentType !== undefined && { paymentType }),
+        ...(amount !== undefined && { amount }),
       }
     });
     res.json(transaction);

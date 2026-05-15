@@ -74,10 +74,10 @@ router.put("/:callId", async (req, res) => {
     const call = await prisma.call.update({
       where: { id: callId },
       data: {
-        characterId: characterId !== undefined ? (characterId || null) : undefined,
-        callDate: callDate ? new Date(callDate) : undefined,
-        duration: duration !== undefined ? duration : undefined,
-        status: status !== undefined ? status : undefined
+        ...(characterId !== undefined && { characterId: characterId || null }),
+        ...(callDate && { callDate: new Date(callDate) }),
+        ...(duration !== undefined && { duration }),
+        ...(status !== undefined && { status }),
       },
       include: {
         character: true

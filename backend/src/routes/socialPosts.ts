@@ -66,8 +66,8 @@ router.put("/:postId", async (req, res) => {
     const post = await prisma.socialPost.update({
       where: { id: postId },
       data: {
-        content: content !== undefined ? content : undefined,
-        reportReason: reportReason !== undefined ? (reportReason !== null ? reportReason : null) : undefined
+        ...(content !== undefined && { content }),
+        ...(reportReason !== undefined && { reportReason: reportReason !== null ? reportReason : null }),
       }
     });
     res.json(post);
