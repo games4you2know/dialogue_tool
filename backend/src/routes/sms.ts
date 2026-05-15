@@ -3,27 +3,26 @@ import { PrismaClient } from "@prisma/client";
 const prisma = new PrismaClient();
 const router = Router();
 
-// Helper function to parse question reactions
-const parseQuestionReactions = (question: any) => {
-  return {
-    ...question,
-    reactions: {
-      positive: JSON.parse(question.positiveReactions || '[]'),
-      negative: JSON.parse(question.negativeReactions || '[]')
+const conversationInclude = {
+  npcCharacter: true,
+  participants: {
+    include: {
+      character: true
     }
-  };
-};
-
-const transformConversationData = (conversation: any) => {
-  if (!conversation) return conversation;
-  
-  return {
-    ...conversation,
-    messages: conversation.messages?.map((message: any) => ({
-      ...message,
-      questions: message.questions?.map((question: any) => parseQuestionReactions(question))
-    }))
-  };
+  },
+  messages: {
+    include: {
+      character: true,
+      questions: {
+        include: {
+          answers: {
+            orderBy: { order: 'asc' as const }
+          }
+        }
+      }
+    },
+    orderBy: { timestamp: 'asc' as const }
+  }
 };
 
 // Get all SMS conversations for a project
@@ -32,29 +31,10 @@ router.get("/project/:projectId", async (req, res) => {
     const { projectId } = req.params;
     const conversations = await prisma.sMSConversation.findMany({
       where: { projectId },
-      include: {
-        participants: {
-          include: {
-            character: true
-          }
-        },
-        messages: {
-          include: {
-            character: true,
-            questions: {
-              include: {
-                answers: {
-                  orderBy: { order: 'asc' }
-                }
-              }
-            }
-          },
-          orderBy: { timestamp: 'asc' }
-        }
-      },
+      include: conversationInclude,
       orderBy: { name: 'asc' }
     });
-    res.json(conversations.map(transformConversationData));
+    res.json(conversations);
   } catch (error) {
     res.status(500).json({ error: 'Failed to fetch SMS conversations' });
   }
@@ -66,29 +46,10 @@ router.get("/:conversationId", async (req, res) => {
     const { conversationId } = req.params;
     const conversation = await prisma.sMSConversation.findUnique({
       where: { id: conversationId },
-      include: {
-        participants: {
-          include: {
-            character: true
-          }
-        },
-        messages: {
-          include: {
-            character: true,
-            questions: {
-              include: {
-                answers: {
-                  orderBy: { order: 'asc' }
-                }
-              }
-            }
-          },
-          orderBy: { timestamp: 'asc' }
-        }
-      }
+      include: conversationInclude
     });
     if (!conversation) return res.status(404).json({ error: "SMS conversation not found" });
-    res.json(transformConversationData(conversation));
+    res.json(conversation);
   } catch (error) {
     res.status(500).json({ error: 'Failed to fetch SMS conversation' });
   }
@@ -97,16 +58,14 @@ router.get("/:conversationId", async (req, res) => {
 // Create SMS conversation
 router.post("/", async (req, res) => {
   try {
-    const { projectId, name, tag, folderId } = req.body;
+    const { projectId, name, tag, folderId, npcCharacterId } = req.body;
     
     if (!name?.trim()) {
       return res.status(400).json({ error: 'Conversation name is required' });
     }
-    
     if (!tag?.trim()) {
       return res.status(400).json({ error: 'Conversation tag is required' });
     }
-    
     if (!projectId) {
       return res.status(400).json({ error: 'Project ID is required' });
     }
@@ -116,20 +75,10 @@ router.post("/", async (req, res) => {
         projectId,
         name: name.trim(),
         tag: tag.trim(),
-        folderId: folderId || null
+        folderId: folderId || null,
+        npcCharacterId: npcCharacterId || null
       },
-      include: {
-        participants: {
-          include: {
-            character: true
-          }
-        },
-        messages: {
-          include: {
-            character: true
-          }
-        }
-      }
+      include: conversationInclude
     });
     
     res.status(201).json(conversation);
@@ -142,7 +91,7 @@ router.post("/", async (req, res) => {
 router.put("/:conversationId", async (req, res) => {
   try {
     const { conversationId } = req.params;
-    const { name, tag, folderId } = req.body;
+    const { name, tag, folderId, npcCharacterId } = req.body;
     
     if (!name?.trim()) {
       return res.status(400).json({ error: 'Conversation name is required' });
@@ -153,21 +102,10 @@ router.put("/:conversationId", async (req, res) => {
       data: {
         name: name.trim(),
         ...(tag && { tag: tag.trim() }),
-        folderId: folderId || null
+        folderId: folderId || null,
+        ...(npcCharacterId !== undefined && { npcCharacterId: npcCharacterId || null })
       },
-      include: {
-        participants: {
-          include: {
-            character: true
-          }
-        },
-        messages: {
-          include: {
-            character: true
-          },
-          orderBy: { timestamp: 'asc' }
-        }
-      }
+      include: conversationInclude
     });
     
     res.json(conversation);
@@ -199,7 +137,7 @@ router.delete("/:conversationId", async (req, res) => {
 router.post("/:conversationId/messages", async (req, res) => {
   try {
     const { conversationId } = req.params;
-    const { characterId, text, timestamp } = req.body;
+    const { fromCpu, text, timestamp } = req.body;
     
     if (text === undefined || text === null) {
       return res.status(400).json({ error: 'Message text is required' });
@@ -208,12 +146,17 @@ router.post("/:conversationId/messages", async (req, res) => {
     const message = await prisma.sMSMessage.create({
       data: {
         conversationId,
-        characterId: characterId || null,
-        text: text.trim(),
+        fromCpu: fromCpu === true,
+        text: text,
         timestamp: timestamp ? new Date(timestamp) : new Date()
       },
       include: {
-        character: true
+        character: true,
+        questions: {
+          include: {
+            answers: { orderBy: { order: 'asc' } }
+          }
+        }
       }
     });
     
@@ -227,29 +170,22 @@ router.post("/:conversationId/messages", async (req, res) => {
 router.put("/messages/:messageId", async (req, res) => {
   try {
     const { messageId } = req.params;
-    const { characterId, text, timestamp } = req.body;
-    
-    if (!text?.trim()) {
-      return res.status(400).json({ error: 'Message text is required' });
-    }
-
-    const updateData: any = {
-      text: text.trim()
-    };
-    
-    if (characterId !== undefined) {
-      updateData.characterId = characterId;
-    }
-    
-    if (timestamp) {
-      updateData.timestamp = new Date(timestamp);
-    }
+    const { fromCpu, text, timestamp } = req.body;
 
     const message = await prisma.sMSMessage.update({
       where: { id: messageId },
-      data: updateData,
+      data: {
+        ...(text !== undefined && { text }),
+        ...(fromCpu !== undefined && { fromCpu: fromCpu === true }),
+        ...(timestamp && { timestamp: new Date(timestamp) })
+      },
       include: {
-        character: true
+        character: true,
+        questions: {
+          include: {
+            answers: { orderBy: { order: 'asc' } }
+          }
+        }
       }
     });
     
@@ -282,30 +218,27 @@ router.delete("/messages/:messageId", async (req, res) => {
 router.post("/messages/:messageId/questions", async (req, res) => {
   try {
     const { messageId } = req.params;
-    const { content, answers, reactions } = req.body;
+    const { content, answers } = req.body;
     
     if (!content?.trim()) {
       return res.status(400).json({ error: 'Question content is required' });
     }
-
     if (!answers || !Array.isArray(answers) || answers.length === 0) {
       return res.status(400).json({ error: 'At least one answer is required' });
     }
-
-    const positiveReactions = reactions?.positive || [];
-    const negativeReactions = reactions?.negative || [];
 
     const question = await prisma.sMSQuestion.create({
       data: {
         messageId,
         content: content.trim(),
-        positiveReactions: JSON.stringify(positiveReactions),
-        negativeReactions: JSON.stringify(negativeReactions),
+        positiveReactions: null,
+        negativeReactions: null,
         answers: {
           create: answers.map((answer: any, index: number) => ({
             content: answer.content,
             isCorrect: answer.isCorrect || false,
-            order: answer.order !== undefined ? answer.order : index
+            order: answer.order !== undefined ? answer.order : index,
+            cpuResponse: answer.cpuResponse || null
           }))
         }
       },
@@ -316,7 +249,7 @@ router.post("/messages/:messageId/questions", async (req, res) => {
       }
     });
     
-    res.status(201).json(parseQuestionReactions(question));
+    res.status(201).json(question);
   } catch (error) {
     console.error(error);
     res.status(500).json({ error: 'Failed to create question' });
@@ -327,14 +260,11 @@ router.post("/messages/:messageId/questions", async (req, res) => {
 router.put("/questions/:questionId", async (req, res) => {
   try {
     const { questionId } = req.params;
-    const { content, answers, reactions } = req.body;
+    const { content, answers } = req.body;
     
     if (!content?.trim()) {
       return res.status(400).json({ error: 'Question content is required' });
     }
-
-    const positiveReactions = reactions?.positive || [];
-    const negativeReactions = reactions?.negative || [];
 
     await prisma.sMSAnswer.deleteMany({
       where: { questionId }
@@ -344,13 +274,12 @@ router.put("/questions/:questionId", async (req, res) => {
       where: { id: questionId },
       data: {
         content: content.trim(),
-        positiveReactions: JSON.stringify(positiveReactions),
-        negativeReactions: JSON.stringify(negativeReactions),
         answers: {
           create: answers.map((answer: any, index: number) => ({
             content: answer.content,
             isCorrect: answer.isCorrect || false,
-            order: answer.order !== undefined ? answer.order : index
+            order: answer.order !== undefined ? answer.order : index,
+            cpuResponse: answer.cpuResponse || null
           }))
         }
       },
@@ -361,7 +290,7 @@ router.put("/questions/:questionId", async (req, res) => {
       }
     });
     
-    res.json(parseQuestionReactions(question));
+    res.json(question);
   } catch (error: any) {
     if (error.code === 'P2025') {
       return res.status(404).json({ error: 'Question not found' });

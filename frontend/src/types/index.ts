@@ -101,11 +101,7 @@ export interface SMSAnswer {
   content: string;
   isCorrect: boolean;
   order: number;
-}
-
-export interface SMSReactions {
-  positive: string[];
-  negative: string[];
+  cpuResponse?: string;
 }
 
 export interface SMSQuestion {
@@ -113,13 +109,13 @@ export interface SMSQuestion {
   messageId: string;
   content: string;
   answers: SMSAnswer[];
-  reactions: SMSReactions;
   createdAt: Date;
 }
 
 export interface SMSMessage {
   id: string;
-  characterId: string;
+  characterId?: string;
+  fromCpu: boolean;
   text: string;
   timestamp: Date;
   isRead: boolean;
@@ -134,7 +130,9 @@ export interface SMSConversation {
   folderId?: string;
   name: string;
   tag: string;
-  participants: Character[];
+  npcCharacterId?: string;
+  npcCharacter?: Character;
+  participants: { id: string; character: Character }[];
   messages: SMSMessage[];
   isGroupChat: boolean;
   createdAt: Date;

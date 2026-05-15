@@ -290,17 +290,9 @@ router.get("/:projectId/export", authMiddleware, async (req, res) => {
         },
         smsConversations: {
           include: {
-            folder: true,
-            participants: {
-              include: {
-                character: {
-                }
-              }
-            },
+            npcCharacter: {},
             messages: {
               include: {
-                character: {
-                },
                 questions: {
                   include: {
                     answers: {
@@ -373,25 +365,21 @@ router.get("/:projectId/export", authMiddleware, async (req, res) => {
       })),
       smsConversations: (project as any).smsConversations.map((conversation: any) => ({
         tag: conversation.tag,
-        isGroupChat: conversation.isGroupChat,
-        participants: conversation.participants.map((p: any) => p.character.tag),
+        characterId: conversation.npcCharacter?.tag || null,
         messages: conversation.messages.map((message: any) => ({
-          senderTag: message.character.tag,
+          fromCpu: message.fromCpu,
           content: message.text,
           timestamp: message.timestamp,
-          isRead: message.isRead,
-          questions: message.questions.map((question: any, index: number) => ({
-            order: index,
-            content: question.content,
-            reactions: {
-              positive: JSON.parse(question.positiveReactions),
-              negative: JSON.parse(question.negativeReactions)
-            },
-            answers: question.answers.map((answer: any) => ({
-              content: answer.content,
-              isCorrect: answer.isCorrect
+          ...(message.questions && message.questions.length > 0 && {
+            questions: message.questions.map((question: any) => ({
+              content: question.content,
+              answers: question.answers.map((answer: any) => ({
+                content: answer.content,
+                isCorrect: answer.isCorrect,
+                ...(answer.cpuResponse && { cpuResponse: answer.cpuResponse }),
+              }))
             }))
-          }))
+          })
         })),
       })),
       calls: (project as any).calls.map((call: any) => ({
