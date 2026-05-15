@@ -153,6 +153,18 @@ export interface Call {
   updatedAt: Date;
 }
 
+export interface JournalEntry {
+  id: string;
+  projectId: string;
+  entryId: string;
+  context: string;
+  emotion: number; // 1=heureux, 2=en colère, 3=triste
+  content: string;
+  info: string;
+  createdAt: Date;
+  updatedAt: Date;
+}
+
 export interface SocialPost {
   id: string;
   projectId: string;

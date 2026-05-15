@@ -44,6 +44,7 @@ model Project {
   calls            Call[]
   bankTransactions BankTransaction[]
   socialPosts      SocialPost[]
+  journalEntries   JournalEntry[]
 
   @@map("projects")
 }
@@ -322,6 +323,22 @@ model SocialPost {
   project Project @relation(fields: [projectId], references: [id], onDelete: Cascade)
 
   @@map("social_posts")
+}
+
+model JournalEntry {
+  id        String   @id @default(uuid())
+  projectId String
+  entryId   String
+  context   String
+  emotion   Int      @default(1) // 1=heureux, 2=en colère, 3=triste
+  content   String
+  info      String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  project Project @relation(fields: [projectId], references: [id], onDelete: Cascade)
+
+  @@map("journal_entries")
 }
 
 // Suppression de l'ancien modèle Scene qui n'est plus utilisé

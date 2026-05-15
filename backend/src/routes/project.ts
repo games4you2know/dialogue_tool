@@ -325,6 +325,9 @@ router.get("/:projectId/export", authMiddleware, async (req, res) => {
         },
         socialPosts: {
           orderBy: { createdAt: 'asc' }
+        },
+        journalEntries: {
+          orderBy: { createdAt: 'asc' }
         }
       }
     });
@@ -406,6 +409,13 @@ router.get("/:projectId/export", authMiddleware, async (req, res) => {
       socialPosts: (project as any).socialPosts.map((post: any) => ({
         content: post.content,
         reportReason: post.reportReason
+      })),
+      journal: (project as any).journalEntries.map((entry: any) => ({
+        ID: entry.entryId,
+        Context: entry.context,
+        Emotion: entry.emotion,
+        Content: entry.content,
+        Info: entry.info,
       }))
     };
     
