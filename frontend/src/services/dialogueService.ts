@@ -22,28 +22,26 @@ export interface CreateDialogueLineRequest {
   characterId?: string;
   text: string;
   order: number;
-  displayedCharacterId?: string;
-  leftCharacterId?: string;
-  rightCharacterId?: string;
-  displayedMoodId?: string;
-  leftMoodId?: string;
-  rightMoodId?: string;
-  leftCharacterActive?: boolean;
-  rightCharacterActive?: boolean;
+  secondaryCharacterId?: string;
+  mainCharacterMoodId?: string;
+  mainCharacterPosition?: number;
+  secondaryCharacterMoodId?: string;
+  secondaryCharacterPosition?: number;
+  triggerCameraShake?: boolean;
+  memory?: string;
 }
 
 export interface UpdateDialogueLineRequest {
   characterId?: string;
   text: string;
   order?: number;
-  displayedCharacterId?: string;
-  leftCharacterId?: string;
-  rightCharacterId?: string;
-  displayedMoodId?: string;
-  leftMoodId?: string;
-  rightMoodId?: string;
-  leftCharacterActive?: boolean;
-  rightCharacterActive?: boolean;
+  secondaryCharacterId?: string;
+  mainCharacterMoodId?: string;
+  mainCharacterPosition?: number;
+  secondaryCharacterMoodId?: string;
+  secondaryCharacterPosition?: number;
+  triggerCameraShake?: boolean;
+  memory?: string;
 }
 
 export interface CreateDialogueChoiceRequest {

@@ -60,14 +60,13 @@ export interface DialogueLine {
   character?: Character;
   text: string;
   order: number;
-  displayedCharacterId?: string; // Pour un seul personnage affiché (optionnel, par défaut celui qui parle)
-  leftCharacterId?: string; // Pour deux personnages : celui de gauche
-  rightCharacterId?: string; // Pour deux personnages : celui de droite
-  displayedMoodId?: string; // Mood pour le personnage affiché (mode un personnage)
-  leftMoodId?: string; // Mood pour le personnage de gauche (mode deux personnages)
-  rightMoodId?: string; // Mood pour le personnage de droite (mode deux personnages)
-  leftCharacterActive?: boolean; // Si le personnage de gauche est actif
-  rightCharacterActive?: boolean; // Si le personnage de droite est actif
+  secondaryCharacterId?: string;
+  mainCharacterMoodId?: string;
+  mainCharacterPosition?: number; // 0=left, 1=middle, 2=right
+  secondaryCharacterMoodId?: string;
+  secondaryCharacterPosition?: number; // 0=left, 1=middle, 2=right
+  triggerCameraShake?: boolean;
+  memory?: string;
   choices?: DialogueChoice[];
 }
 

@@ -22,15 +22,13 @@ interface LineFormData {
   characterId: string;
   text: string;
   order: number;
-  displayMode: 'one' | 'two';
-  displayedCharacterId: string;
-  leftCharacterId: string;
-  rightCharacterId: string;
-  displayedMoodId: string;
-  leftMoodId: string;
-  rightMoodId: string;
-  leftCharacterActive: boolean;
-  rightCharacterActive: boolean;
+  mainCharacterMoodId: string;
+  mainCharacterPosition: number;
+  secondaryCharacterId: string;
+  secondaryCharacterMoodId: string;
+  secondaryCharacterPosition: number;
+  triggerCameraShake: boolean;
+  memory: string;
 }
 
 const DialogueEditor: React.FC<DialogueEditorProps> = ({ dialogue, projectId, onClose }) => {
@@ -44,37 +42,31 @@ const DialogueEditor: React.FC<DialogueEditorProps> = ({ dialogue, projectId, on
     characterId: '',
     text: '',
     order: 0,
-    displayMode: 'one',
-    displayedCharacterId: '',
-    leftCharacterId: '',
-    rightCharacterId: '',
-    displayedMoodId: '',
-    leftMoodId: '',
-    rightMoodId: '',
-    leftCharacterActive: false,
-    rightCharacterActive: false
+    mainCharacterMoodId: '',
+    mainCharacterPosition: 1,
+    secondaryCharacterId: '',
+    secondaryCharacterMoodId: '',
+    secondaryCharacterPosition: 1,
+    triggerCameraShake: false,
+    memory: ''
   });
   const [choiceText, setChoiceText] = useState('');
   const [displaySettings, setDisplaySettings] = useState<{
-    displayMode: 'one' | 'two';
-    displayedCharacterId: string;
-    leftCharacterId: string;
-    rightCharacterId: string;
-    displayedMoodId: string;
-    leftMoodId: string;
-    rightMoodId: string;
-    leftCharacterActive: boolean;
-    rightCharacterActive: boolean;
+    mainCharacterMoodId: string;
+    mainCharacterPosition: number;
+    secondaryCharacterId: string;
+    secondaryCharacterMoodId: string;
+    secondaryCharacterPosition: number;
+    triggerCameraShake: boolean;
+    memory: string;
   }>({
-    displayMode: 'one',
-    displayedCharacterId: '',
-    leftCharacterId: '',
-    rightCharacterId: '',
-    displayedMoodId: '',
-    leftMoodId: '',
-    rightMoodId: '',
-    leftCharacterActive: false,
-    rightCharacterActive: false
+    mainCharacterMoodId: '',
+    mainCharacterPosition: 1,
+    secondaryCharacterId: '',
+    secondaryCharacterMoodId: '',
+    secondaryCharacterPosition: 1,
+    triggerCameraShake: false,
+    memory: ''
   });
 
   const { editor } = useDialogueLineEditor(selectedLine, reload);
@@ -94,19 +86,18 @@ const DialogueEditor: React.FC<DialogueEditorProps> = ({ dialogue, projectId, on
         characterId: lineFormData.characterId || undefined,
         text: lineFormData.text,
         order: currentDialogue.lines?.length || 0,
-        displayedCharacterId: lineFormData.displayMode === 'one' ? (lineFormData.displayedCharacterId || lineFormData.characterId || undefined) : undefined,
-        leftCharacterId: lineFormData.displayMode === 'two' ? (lineFormData.leftCharacterId || undefined) : undefined,
-        rightCharacterId: lineFormData.displayMode === 'two' ? (lineFormData.rightCharacterId || undefined) : undefined,
-        displayedMoodId: lineFormData.displayMode === 'one' ? (lineFormData.displayedMoodId || undefined) : undefined,
-        leftMoodId: lineFormData.displayMode === 'two' ? (lineFormData.leftMoodId || undefined) : undefined,
-        rightMoodId: lineFormData.displayMode === 'two' ? (lineFormData.rightMoodId || undefined) : undefined,
-        leftCharacterActive: lineFormData.displayMode === 'two' ? lineFormData.leftCharacterActive : undefined,
-        rightCharacterActive: lineFormData.displayMode === 'two' ? lineFormData.rightCharacterActive : undefined
+        mainCharacterMoodId: lineFormData.mainCharacterMoodId || undefined,
+        mainCharacterPosition: lineFormData.mainCharacterPosition,
+        secondaryCharacterId: lineFormData.secondaryCharacterId || undefined,
+        secondaryCharacterMoodId: lineFormData.secondaryCharacterMoodId || undefined,
+        secondaryCharacterPosition: lineFormData.secondaryCharacterPosition,
+        triggerCameraShake: lineFormData.triggerCameraShake,
+        memory: lineFormData.memory
       };
 
       await dialogueService.addDialogueLine(currentDialogue.id, newLine);
       await reload();
-      setLineFormData({ characterId: '', text: '', order: 0, displayMode: 'one', displayedCharacterId: '', leftCharacterId: '', rightCharacterId: '', displayedMoodId: '', leftMoodId: '', rightMoodId: '', leftCharacterActive: false, rightCharacterActive: false });
+      setLineFormData({ characterId: '', text: '', order: 0, mainCharacterMoodId: '', mainCharacterPosition: 1, secondaryCharacterId: '', secondaryCharacterMoodId: '', secondaryCharacterPosition: 1, triggerCameraShake: false, memory: '' });
       setShowAddLineForm(false);
     } catch (err) {
       setError('Erreur lors de l\'ajout de la ligne');
@@ -196,14 +187,13 @@ const DialogueEditor: React.FC<DialogueEditorProps> = ({ dialogue, projectId, on
         characterId: selectedLine.characterId,
         text: selectedLine.text,
         order: selectedLine.order,
-        displayedCharacterId: displaySettings.displayMode === 'one' ? (displaySettings.displayedCharacterId || undefined) : undefined,
-        leftCharacterId: displaySettings.displayMode === 'two' ? (displaySettings.leftCharacterId || undefined) : undefined,
-        rightCharacterId: displaySettings.displayMode === 'two' ? (displaySettings.rightCharacterId || undefined) : undefined,
-        displayedMoodId: displaySettings.displayMode === 'one' ? (displaySettings.displayedMoodId || undefined) : undefined,
-        leftMoodId: displaySettings.displayMode === 'two' ? (displaySettings.leftMoodId || undefined) : undefined,
-        rightMoodId: displaySettings.displayMode === 'two' ? (displaySettings.rightMoodId || undefined) : undefined,
-        leftCharacterActive: displaySettings.displayMode === 'two' ? displaySettings.leftCharacterActive : undefined,
-        rightCharacterActive: displaySettings.displayMode === 'two' ? displaySettings.rightCharacterActive : undefined
+        mainCharacterMoodId: displaySettings.mainCharacterMoodId || undefined,
+        mainCharacterPosition: displaySettings.mainCharacterPosition,
+        secondaryCharacterId: displaySettings.secondaryCharacterId || undefined,
+        secondaryCharacterMoodId: displaySettings.secondaryCharacterMoodId || undefined,
+        secondaryCharacterPosition: displaySettings.secondaryCharacterPosition,
+        triggerCameraShake: displaySettings.triggerCameraShake,
+        memory: displaySettings.memory
       };
       
       await dialogueService.updateDialogueLine(selectedLine.id, updateData);
@@ -218,17 +208,14 @@ const DialogueEditor: React.FC<DialogueEditorProps> = ({ dialogue, projectId, on
   const startEditingDisplaySettings = () => {
     if (!selectedLine) return;
     
-    const hasTwo = selectedLine.leftCharacterId || selectedLine.rightCharacterId;
     setDisplaySettings({
-      displayMode: hasTwo ? 'two' : 'one',
-      displayedCharacterId: selectedLine.displayedCharacterId || selectedLine.characterId || '',
-      leftCharacterId: selectedLine.leftCharacterId || '',
-      rightCharacterId: selectedLine.rightCharacterId || '',
-      displayedMoodId: selectedLine.displayedMoodId || '',
-      leftMoodId: selectedLine.leftMoodId || '',
-      rightMoodId: selectedLine.rightMoodId || '',
-      leftCharacterActive: selectedLine.leftCharacterActive || false,
-      rightCharacterActive: selectedLine.rightCharacterActive || false
+      mainCharacterMoodId: selectedLine.mainCharacterMoodId || '',
+      mainCharacterPosition: selectedLine.mainCharacterPosition ?? 1,
+      secondaryCharacterId: selectedLine.secondaryCharacterId || '',
+      secondaryCharacterMoodId: selectedLine.secondaryCharacterMoodId || '',
+      secondaryCharacterPosition: selectedLine.secondaryCharacterPosition ?? 1,
+      triggerCameraShake: selectedLine.triggerCameraShake || false,
+      memory: selectedLine.memory || ''
     });
     setEditingDisplaySettings(true);
   };

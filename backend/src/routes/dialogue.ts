@@ -174,7 +174,16 @@ router.delete("/:dialogueId", async (req, res) => {
 router.post("/:dialogueId/lines", async (req, res) => {
   try {
     const { dialogueId } = req.params;
-    const { characterId, text, order, displayedCharacterId, leftCharacterId, rightCharacterId, displayedMoodId, leftMoodId, rightMoodId } = req.body;
+    const {
+      characterId, text, order,
+      secondaryCharacterId,
+      mainCharacterMoodId,
+      mainCharacterPosition,
+      secondaryCharacterMoodId,
+      secondaryCharacterPosition,
+      triggerCameraShake,
+      memory
+    } = req.body;
     
     if (!text?.trim()) {
       return res.status(400).json({ error: 'Line text is required' });
@@ -186,12 +195,13 @@ router.post("/:dialogueId/lines", async (req, res) => {
         characterId: characterId || null,
         text: text.trim(),
         order: order || 0,
-        displayedCharacterId: displayedCharacterId || null,
-        leftCharacterId: leftCharacterId || null,
-        rightCharacterId: rightCharacterId || null,
-        displayedMoodId: displayedMoodId || null,
-        leftMoodId: leftMoodId || null,
-        rightMoodId: rightMoodId || null
+        secondaryCharacterId: secondaryCharacterId || null,
+        mainCharacterMoodId: mainCharacterMoodId || null,
+        mainCharacterPosition: mainCharacterPosition !== undefined ? mainCharacterPosition : 1,
+        secondaryCharacterMoodId: secondaryCharacterMoodId || null,
+        secondaryCharacterPosition: secondaryCharacterPosition !== undefined ? secondaryCharacterPosition : 1,
+        triggerCameraShake: triggerCameraShake || false,
+        memory: memory || ''
       },
       include: {
         character: true,
@@ -209,7 +219,16 @@ router.post("/:dialogueId/lines", async (req, res) => {
 router.put("/lines/:lineId", async (req, res) => {
   try {
     const { lineId } = req.params;
-    const { characterId, text, order, displayedCharacterId, leftCharacterId, rightCharacterId, displayedMoodId, leftMoodId, rightMoodId } = req.body;
+    const {
+      characterId, text, order,
+      secondaryCharacterId,
+      mainCharacterMoodId,
+      mainCharacterPosition,
+      secondaryCharacterMoodId,
+      secondaryCharacterPosition,
+      triggerCameraShake,
+      memory
+    } = req.body;
     
     if (!text?.trim()) {
       return res.status(400).json({ error: 'Line text is required' });
@@ -221,12 +240,13 @@ router.put("/lines/:lineId", async (req, res) => {
         characterId: characterId || null,
         text: text.trim(),
         order: order,
-        displayedCharacterId: displayedCharacterId !== undefined ? displayedCharacterId : undefined,
-        leftCharacterId: leftCharacterId !== undefined ? leftCharacterId : undefined,
-        rightCharacterId: rightCharacterId !== undefined ? rightCharacterId : undefined,
-        displayedMoodId: displayedMoodId !== undefined ? displayedMoodId : undefined,
-        leftMoodId: leftMoodId !== undefined ? leftMoodId : undefined,
-        rightMoodId: rightMoodId !== undefined ? rightMoodId : undefined
+        secondaryCharacterId: secondaryCharacterId !== undefined ? (secondaryCharacterId || null) : undefined,
+        mainCharacterMoodId: mainCharacterMoodId !== undefined ? (mainCharacterMoodId || null) : undefined,
+        mainCharacterPosition: mainCharacterPosition !== undefined ? mainCharacterPosition : undefined,
+        secondaryCharacterMoodId: secondaryCharacterMoodId !== undefined ? (secondaryCharacterMoodId || null) : undefined,
+        secondaryCharacterPosition: secondaryCharacterPosition !== undefined ? secondaryCharacterPosition : undefined,
+        triggerCameraShake: triggerCameraShake !== undefined ? triggerCameraShake : undefined,
+        memory: memory !== undefined ? memory : undefined
       },
       include: {
         character: true,

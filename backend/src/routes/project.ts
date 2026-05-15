@@ -281,9 +281,6 @@ router.get("/:projectId/export", authMiddleware, async (req, res) => {
             lines: {
               include: {
                 character: {
-                },
-                choices: {
-                  orderBy: { id: 'asc' }
                 }
               },
               orderBy: { order: 'asc' }
@@ -333,34 +330,33 @@ router.get("/:projectId/export", authMiddleware, async (req, res) => {
     const moodTagMap = new Map(moods.map(m => [m.id, m.tag]));
     
     const exportJson = {
-      dialogues: project.dialogues.map((dialogue: any) => ({
+      dialogues: (project as any).dialogues.map((dialogue: any) => ({
         tag: dialogue.tag,
         backgroundTag: dialogue.background?.tag || null,
         lines: dialogue.lines.map((line: any) => {
-          const displayedCharacterTag = line.displayedCharacterId ? characterTagMap.get(line.displayedCharacterId) || null : null;
-          const leftCharacterTag = line.leftCharacterId ? characterTagMap.get(line.leftCharacterId) || null : null;
-          const rightCharacterTag = line.rightCharacterId ? characterTagMap.get(line.rightCharacterId) || null : null;
-          const displayedMoodTag = line.displayedMoodId ? moodTagMap.get(line.displayedMoodId) || null : null;
-          const leftMoodTag = line.leftMoodId ? moodTagMap.get(line.leftMoodId) || null : null;
-          const rightMoodTag = line.rightMoodId ? moodTagMap.get(line.rightMoodId) || null : null;
-
-          const hasSingleCharacter = displayedCharacterTag && !leftCharacterTag && !rightCharacterTag;
+          const secondaryCharacterTag = line.secondaryCharacterId ? characterTagMap.get(line.secondaryCharacterId) || null : null;
+          const mainMoodTag = line.mainCharacterMoodId ? moodTagMap.get(line.mainCharacterMoodId) || null : null;
+          const secondaryMoodTag = line.secondaryCharacterMoodId ? moodTagMap.get(line.secondaryCharacterMoodId) || null : null;
 
           return {
             order: line.order,
             characterTag: line.character?.tag || null,
             text: line.text,
-            leftCharacterTag: hasSingleCharacter ? displayedCharacterTag : leftCharacterTag,
-            rightCharacterTag: hasSingleCharacter ? null : rightCharacterTag,
-            leftMoodTag: hasSingleCharacter ? displayedMoodTag : leftMoodTag,
-            rightMoodTag: hasSingleCharacter ? null : rightMoodTag,
-            leftCharacterActive: hasSingleCharacter ? true : (line.leftCharacterActive || false),
-            rightCharacterActive: hasSingleCharacter ? false : (line.rightCharacterActive || false),
-            choices: line.choices
+            secondaryCharacterTag,
+            mainCharacterStaging: {
+              characterMoodTag: mainMoodTag,
+              characterPosition: line.mainCharacterPosition
+            },
+            secondaryCharacterStaging: secondaryCharacterTag ? {
+              characterMoodTag: secondaryMoodTag,
+              characterPosition: line.secondaryCharacterPosition
+            } : null,
+            triggerCameraShake: line.triggerCameraShake,
+            memory: line.memory
           };
         }),
       })),
-      smsConversations: project.smsConversations.map((conversation: any) => ({
+      smsConversations: (project as any).smsConversations.map((conversation: any) => ({
         tag: conversation.tag,
         isGroupChat: conversation.isGroupChat,
         participants: conversation.participants.map((p: any) => p.character.tag),

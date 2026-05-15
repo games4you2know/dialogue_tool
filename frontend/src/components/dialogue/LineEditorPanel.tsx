@@ -4,27 +4,27 @@ import { getCharacterName, getCharacterColor } from '../../utils/characterUtils'
 import CharacterDisplaySettings from './CharacterDisplaySettings';
 import { EditorContent, Editor } from '@tiptap/react';
 
+interface StagingSettings {
+  mainCharacterMoodId: string;
+  mainCharacterPosition: number;
+  secondaryCharacterId: string;
+  secondaryCharacterMoodId: string;
+  secondaryCharacterPosition: number;
+  triggerCameraShake: boolean;
+  memory: string;
+}
+
 interface LineEditorPanelProps {
   line: DialogueLine;
   characters: Character[];
   moods: Mood[];
   editor: Editor | null;
   editingDisplaySettings: boolean;
-  displaySettings: {
-    displayMode: 'one' | 'two';
-    displayedCharacterId: string;
-    leftCharacterId: string;
-    rightCharacterId: string;
-    displayedMoodId: string;
-    leftMoodId: string;
-    rightMoodId: string;
-    leftCharacterActive: boolean;
-    rightCharacterActive: boolean;
-  };
+  displaySettings: StagingSettings;
   onStartEditDisplaySettings: () => void;
   onSaveDisplaySettings: () => void;
   onCancelDisplaySettings: () => void;
-  onUpdateDisplaySettings: (settings: any) => void;
+  onUpdateDisplaySettings: (settings: StagingSettings) => void;
   onAddChoice: () => void;
   onDeleteChoice: (choiceId: string) => void;
   onCreateMood: (name: string) => Promise<void>;

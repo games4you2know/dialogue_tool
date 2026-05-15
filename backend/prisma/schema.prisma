@@ -161,19 +161,18 @@ model DialogueCharacter {
 }
 
 model DialogueLine {
-  id                   String  @id @default(uuid())
-  dialogueId           String
-  characterId          String?
-  text                 String
-  order                Int
-  displayedCharacterId String? // Pour un seul personnage affiché (optionnel, par défaut celui qui parle)
-  leftCharacterId      String? // Pour deux personnages : celui de gauche
-  rightCharacterId     String? // Pour deux personnages : celui de droite
-  displayedMoodId      String? // Mood pour le personnage affiché (mode un personnage)
-  leftMoodId           String? // Mood pour le personnage de gauche (mode deux personnages)
-  rightMoodId          String? // Mood pour le personnage de droite (mode deux personnages)
-  leftCharacterActive  Boolean @default(false) // Si le personnage de gauche est actif
-  rightCharacterActive Boolean @default(false) // Si le personnage de droite est actif
+  id                      String  @id @default(uuid())
+  dialogueId              String
+  characterId             String?
+  text                    String
+  order                   Int
+  secondaryCharacterId    String? // Optional second character displayed in the scene
+  mainCharacterMoodId     String? // Mood for the main (speaking) character
+  mainCharacterPosition   Int     @default(1) // 0=left, 1=middle, 2=right
+  secondaryCharacterMoodId String? // Mood for the secondary character
+  secondaryCharacterPosition Int  @default(1) // 0=left, 1=middle, 2=right
+  triggerCameraShake      Boolean @default(false)
+  memory                  String  @default("")
 
   // Relations
   dialogue  Dialogue         @relation(fields: [dialogueId], references: [id], onDelete: Cascade)
