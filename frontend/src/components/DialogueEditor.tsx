@@ -71,11 +71,21 @@ const DialogueEditor: React.FC<DialogueEditorProps> = ({ dialogue, projectId, on
 
   const { editor } = useDialogueLineEditor(selectedLine, reload);
 
+  // Sync selectedLine with fresh data from currentDialogue after every reload
+  useEffect(() => {
+    if (selectedLine && currentDialogue?.lines) {
+      const freshLine = currentDialogue.lines.find(l => l.id === selectedLine.id);
+      if (freshLine && freshLine !== selectedLine) {
+        setSelectedLine(freshLine);
+      }
+    }
+  }, [currentDialogue]);
+
   useEffect(() => {
     if (editor && selectedLine) {
       editor.commands.setContent(selectedLine.text || '');
     }
-  }, [selectedLine, editor]);
+  }, [selectedLine?.id, editor]);
 
   const handleAddLine = async (e: React.FormEvent) => {
     e.preventDefault();
