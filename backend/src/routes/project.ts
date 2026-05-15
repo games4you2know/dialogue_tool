@@ -322,6 +322,9 @@ router.get("/:projectId/export", authMiddleware, async (req, res) => {
         },
         bankTransactions: {
           orderBy: { createdAt: 'asc' }
+        },
+        socialPosts: {
+          orderBy: { createdAt: 'asc' }
         }
       }
     });
@@ -399,6 +402,10 @@ router.get("/:projectId/export", authMiddleware, async (req, res) => {
         name: tx.name,
         paymentType: tx.paymentType,
         amount: tx.amount
+      })),
+      socialPosts: (project as any).socialPosts.map((post: any) => ({
+        content: post.content,
+        reportReason: post.reportReason
       }))
     };
     

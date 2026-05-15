@@ -153,6 +153,15 @@ export interface Call {
   updatedAt: Date;
 }
 
+export interface SocialPost {
+  id: string;
+  projectId: string;
+  content: string;
+  reportReason?: number | null; // null=aucun, 0=menaces, 1=injure, 2=atteinte à la vie privée
+  createdAt: Date;
+  updatedAt: Date;
+}
+
 export interface BankTransaction {
   id: string;
   projectId: string;

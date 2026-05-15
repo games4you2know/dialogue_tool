@@ -43,6 +43,7 @@ model Project {
   moods            Mood[]
   calls            Call[]
   bankTransactions BankTransaction[]
+  socialPosts      SocialPost[]
 
   @@map("projects")
 }
@@ -308,6 +309,19 @@ model BankTransaction {
   project Project @relation(fields: [projectId], references: [id], onDelete: Cascade)
 
   @@map("bank_transactions")
+}
+
+model SocialPost {
+  id           String   @id @default(uuid())
+  projectId    String
+  content      String
+  reportReason Int?     // null=aucun, 0=menaces, 1=injure, 2=atteinte à la vie privée
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  project Project @relation(fields: [projectId], references: [id], onDelete: Cascade)
+
+  @@map("social_posts")
 }
 
 // Suppression de l'ancien modèle Scene qui n'est plus utilisé
