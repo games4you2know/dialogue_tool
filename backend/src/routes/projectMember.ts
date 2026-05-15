@@ -8,7 +8,7 @@ const prisma = new PrismaClient();
 // Get all members of a project
 router.get("/project/:projectId", authMiddleware, async (req, res) => {
   try {
-    const { projectId } = req.params;
+    const projectId = req.params.projectId as string;
     
     const member = await prisma.projectMember.findUnique({
       where: {
@@ -46,7 +46,7 @@ router.get("/project/:projectId", authMiddleware, async (req, res) => {
 // Add a member to a project
 router.post("/project/:projectId", authMiddleware, async (req, res) => {
   try {
-    const { projectId } = req.params;
+    const projectId = req.params.projectId as string;
     const { username, role = "member" } = req.body;
 
     const requesterMember = await prisma.projectMember.findUnique({
@@ -109,7 +109,7 @@ router.post("/project/:projectId", authMiddleware, async (req, res) => {
 // Update member role
 router.put("/:memberId", authMiddleware, async (req, res) => {
   try {
-    const { memberId } = req.params;
+    const memberId = req.params.memberId as string;
     const { role } = req.body;
 
     const member = await prisma.projectMember.findUnique({
@@ -160,7 +160,7 @@ router.put("/:memberId", authMiddleware, async (req, res) => {
 // Remove a member from a project
 router.delete("/:memberId", authMiddleware, async (req, res) => {
   try {
-    const { memberId } = req.params;
+    const memberId = req.params.memberId as string;
 
     const member = await prisma.projectMember.findUnique({
       where: { id: memberId },

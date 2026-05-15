@@ -6,7 +6,7 @@ const router = Router();
 // Get all dialogues for a project
 router.get("/project/:projectId", async (req, res) => {
   try {
-    const { projectId } = req.params;
+    const projectId = req.params.projectId as string;
     const dialogues = await prisma.dialogue.findMany({
       where: { projectId },
       include: {
@@ -35,7 +35,7 @@ router.get("/project/:projectId", async (req, res) => {
 // Get single dialogue
 router.get("/:dialogueId", async (req, res) => {
   try {
-    const { dialogueId } = req.params;
+    const dialogueId = req.params.dialogueId as string;
     const dialogue = await prisma.dialogue.findUnique({
       where: { id: dialogueId },
       include: {
@@ -112,7 +112,7 @@ router.post("/", async (req, res) => {
 // Update dialogue
 router.put("/:dialogueId", async (req, res) => {
   try {
-    const { dialogueId } = req.params;
+    const dialogueId = req.params.dialogueId as string;
     const { name, tag, description, folderId, backgroundId } = req.body;
     
     if (!name?.trim()) {
@@ -157,7 +157,7 @@ router.put("/:dialogueId", async (req, res) => {
 // Delete dialogue
 router.delete("/:dialogueId", async (req, res) => {
   try {
-    const { dialogueId } = req.params;
+    const dialogueId = req.params.dialogueId as string;
     await prisma.dialogue.delete({
       where: { id: dialogueId }
     });
@@ -173,7 +173,7 @@ router.delete("/:dialogueId", async (req, res) => {
 // Add dialogue line
 router.post("/:dialogueId/lines", async (req, res) => {
   try {
-    const { dialogueId } = req.params;
+    const dialogueId = req.params.dialogueId as string;
     const {
       characterId, text, order,
       secondaryCharacterId,
@@ -218,7 +218,7 @@ router.post("/:dialogueId/lines", async (req, res) => {
 // Update dialogue line
 router.put("/lines/:lineId", async (req, res) => {
   try {
-    const { lineId } = req.params;
+    const lineId = req.params.lineId as string;
     const {
       characterId, text, order,
       secondaryCharacterId,
@@ -266,7 +266,7 @@ router.put("/lines/:lineId", async (req, res) => {
 // Delete dialogue line
 router.delete("/lines/:lineId", async (req, res) => {
   try {
-    const { lineId } = req.params;
+    const lineId = req.params.lineId as string;
     await prisma.dialogueLine.delete({
       where: { id: lineId }
     });
@@ -282,7 +282,7 @@ router.delete("/lines/:lineId", async (req, res) => {
 // Add choice to dialogue line
 router.post("/lines/:lineId/choices", async (req, res) => {
   try {
-    const { lineId } = req.params;
+    const lineId = req.params.lineId as string;
     const { text, nextDialogueId } = req.body;
     
     if (!text?.trim()) {
@@ -306,7 +306,7 @@ router.post("/lines/:lineId/choices", async (req, res) => {
 // Update dialogue choice
 router.put("/choices/:choiceId", async (req, res) => {
   try {
-    const { choiceId } = req.params;
+    const choiceId = req.params.choiceId as string;
     const { text, nextDialogueId } = req.body;
     
     if (!text?.trim()) {
@@ -333,7 +333,7 @@ router.put("/choices/:choiceId", async (req, res) => {
 // Delete dialogue choice
 router.delete("/choices/:choiceId", async (req, res) => {
   try {
-    const { choiceId } = req.params;
+    const choiceId = req.params.choiceId as string;
     await prisma.dialogueChoice.delete({
       where: { id: choiceId }
     });

@@ -7,7 +7,7 @@ const prisma = new PrismaClient();
 // Get all folders for a project
 router.get('/project/:projectId', async (req, res) => {
   try {
-    const { projectId } = req.params;
+    const projectId = req.params.projectId as string;
     const { type } = req.query;
     
     const where: any = { projectId };
@@ -38,7 +38,7 @@ router.get('/project/:projectId', async (req, res) => {
 // Get folder by ID with its content
 router.get('/:id', async (req, res) => {
   try {
-    const { id } = req.params;
+    const id = req.params.id as string;
     const folder = await prisma.folder.findUnique({
       where: { id },
       include: {
@@ -118,7 +118,7 @@ router.post('/', async (req, res) => {
 // Update a folder
 router.put('/:id', async (req, res) => {
   try {
-    const { id } = req.params;
+    const id = req.params.id as string;
     const { name, description, parentId } = req.body;
 
     const folder = await prisma.folder.update({
@@ -149,7 +149,7 @@ router.put('/:id', async (req, res) => {
 // Delete a folder
 router.delete('/:id', async (req, res) => {
   try {
-    const { id } = req.params;
+    const id = req.params.id as string;
 
     const folder = await prisma.folder.findUnique({
       where: { id },

@@ -8,7 +8,7 @@ const router = Router();
 // GET /api/backgrounds/:projectId - Récupérer tous les backgrounds d'un projet
 router.get("/:projectId", async (req: Request, res: Response) => {
   try {
-    const { projectId } = req.params;
+    const projectId = req.params.projectId as string;
     
     if (!projectId) {
       return res.status(400).json({ error: "Project ID is required" });
@@ -28,7 +28,7 @@ router.get("/:projectId", async (req: Request, res: Response) => {
 // GET /api/backgrounds/detail/:id - Récupérer un background par son ID
 router.get("/detail/:id", async (req: Request, res: Response) => {
   try {
-    const { id } = req.params;
+    const id = req.params.id as string;
     
     if (!id) {
       return res.status(400).json({ error: "Background ID is required" });
@@ -77,7 +77,7 @@ router.post("/", async (req: Request, res: Response) => {
 // PUT /api/backgrounds/:id - Mettre à jour un background
 router.put("/:id", async (req: Request, res: Response) => {
   try {
-    const { id } = req.params;
+    const id = req.params.id as string;
     const { name, tag, imageUrl } = req.body;
     
     if (!id) {
@@ -103,7 +103,7 @@ router.put("/:id", async (req: Request, res: Response) => {
 // DELETE /api/backgrounds/:id - Supprimer un background
 router.delete("/:id", async (req: Request, res: Response) => {
   try {
-    const { id } = req.params;
+    const id = req.params.id as string;
     
     if (!id) {
       return res.status(400).json({ error: "Background ID is required" });

@@ -29,7 +29,7 @@ const transformConversationData = (conversation: any) => {
 // Get all SMS conversations for a project
 router.get("/project/:projectId", async (req, res) => {
   try {
-    const { projectId } = req.params;
+    const projectId = req.params.projectId as string;
     const conversations = await prisma.sMSConversation.findMany({
       where: { projectId },
       include: {
@@ -63,7 +63,7 @@ router.get("/project/:projectId", async (req, res) => {
 // Get single SMS conversation
 router.get("/:conversationId", async (req, res) => {
   try {
-    const { conversationId } = req.params;
+    const conversationId = req.params.conversationId as string;
     const conversation = await prisma.sMSConversation.findUnique({
       where: { id: conversationId },
       include: {
@@ -141,7 +141,7 @@ router.post("/", async (req, res) => {
 // Update SMS conversation
 router.put("/:conversationId", async (req, res) => {
   try {
-    const { conversationId } = req.params;
+    const conversationId = req.params.conversationId as string;
     const { name, tag, folderId } = req.body;
     
     if (!name?.trim()) {
@@ -182,7 +182,7 @@ router.put("/:conversationId", async (req, res) => {
 // Delete SMS conversation
 router.delete("/:conversationId", async (req, res) => {
   try {
-    const { conversationId } = req.params;
+    const conversationId = req.params.conversationId as string;
     await prisma.sMSConversation.delete({
       where: { id: conversationId }
     });
@@ -198,7 +198,7 @@ router.delete("/:conversationId", async (req, res) => {
 // Add SMS message
 router.post("/:conversationId/messages", async (req, res) => {
   try {
-    const { conversationId } = req.params;
+    const conversationId = req.params.conversationId as string;
     const { characterId, text, timestamp } = req.body;
     
     if (text === undefined || text === null) {
@@ -226,7 +226,7 @@ router.post("/:conversationId/messages", async (req, res) => {
 // Update SMS message
 router.put("/messages/:messageId", async (req, res) => {
   try {
-    const { messageId } = req.params;
+    const messageId = req.params.messageId as string;
     const { characterId, text, timestamp } = req.body;
     
     if (!text?.trim()) {
@@ -265,7 +265,7 @@ router.put("/messages/:messageId", async (req, res) => {
 // Delete SMS message
 router.delete("/messages/:messageId", async (req, res) => {
   try {
-    const { messageId } = req.params;
+    const messageId = req.params.messageId as string;
     await prisma.sMSMessage.delete({
       where: { id: messageId }
     });
@@ -281,7 +281,7 @@ router.delete("/messages/:messageId", async (req, res) => {
 // Add question to SMS message
 router.post("/messages/:messageId/questions", async (req, res) => {
   try {
-    const { messageId } = req.params;
+    const messageId = req.params.messageId as string;
     const { content, answers, reactions } = req.body;
     
     if (!content?.trim()) {
@@ -326,7 +326,7 @@ router.post("/messages/:messageId/questions", async (req, res) => {
 // Update question
 router.put("/questions/:questionId", async (req, res) => {
   try {
-    const { questionId } = req.params;
+    const questionId = req.params.questionId as string;
     const { content, answers, reactions } = req.body;
     
     if (!content?.trim()) {
@@ -373,7 +373,7 @@ router.put("/questions/:questionId", async (req, res) => {
 // Delete question
 router.delete("/questions/:questionId", async (req, res) => {
   try {
-    const { questionId } = req.params;
+    const questionId = req.params.questionId as string;
     await prisma.sMSQuestion.delete({
       where: { id: questionId }
     });

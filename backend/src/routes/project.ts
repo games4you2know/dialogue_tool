@@ -130,7 +130,7 @@ router.get("/", authMiddleware, async (req, res) => {
 // Get single project
 router.get("/:projectId", authMiddleware, async (req, res) => {
   try {
-    const { projectId } = req.params;
+    const projectId = req.params.projectId as string;
     if (!projectId) return res.status(400).json({ error: "Project ID is required" });
     
     const project = await prisma.project.findUnique({
@@ -213,7 +213,7 @@ router.post("/", authMiddleware, async (req, res) => {
 // Update project
 router.put("/:projectId", authMiddleware, async (req, res) => {
   try {
-    const { projectId } = req.params;
+    const projectId = req.params.projectId as string;
     if (!projectId) return res.status(400).json({ error: "Project ID is required" });
     
     const { name, description } = req.body;
@@ -242,7 +242,7 @@ router.put("/:projectId", authMiddleware, async (req, res) => {
 // Delete project
 router.delete("/:projectId", authMiddleware, async (req, res) => {
   try {
-    const { projectId } = req.params;
+    const projectId = req.params.projectId as string;
     if (!projectId) return res.status(400).json({ error: "Project ID is required" });
     
     await prisma.project.delete({
@@ -260,7 +260,7 @@ router.delete("/:projectId", authMiddleware, async (req, res) => {
 // Export project as JSON
 router.get("/:projectId/export", authMiddleware, async (req, res) => {
   try {
-    const { projectId } = req.params;
+    const projectId = req.params.projectId as string;
     if (!projectId) return res.status(400).json({ error: "Project ID is required" });
     
     const project = await prisma.project.findUnique({

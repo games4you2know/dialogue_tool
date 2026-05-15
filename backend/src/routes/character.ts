@@ -6,7 +6,7 @@ const router = Router();
 // Get all characters for a project
 router.get("/project/:projectId", async (req, res) => {
   try {
-    const { projectId } = req.params;
+    const projectId = req.params.projectId as string;
     const characters = await prisma.character.findMany({
       where: { projectId },
       orderBy: { name: 'asc' }
@@ -20,7 +20,7 @@ router.get("/project/:projectId", async (req, res) => {
 // Get single character
 router.get("/:characterId", async (req, res) => {
   try {
-    const { characterId } = req.params;
+    const characterId = req.params.characterId as string;
     const character = await prisma.character.findUnique({
       where: { id: characterId }
     });
@@ -62,7 +62,7 @@ router.post("/", async (req, res) => {
 // Update character
 router.put("/:characterId", async (req, res) => {
   try {
-    const { characterId } = req.params;
+    const characterId = req.params.characterId as string;
     const { name, tag, color } = req.body;
     
     if (!name?.trim()) {
@@ -90,7 +90,7 @@ router.put("/:characterId", async (req, res) => {
 // Delete character
 router.delete("/:characterId", async (req, res) => {
   try {
-    const { characterId } = req.params;
+    const characterId = req.params.characterId as string;
     await prisma.character.delete({
       where: { id: characterId }
     });

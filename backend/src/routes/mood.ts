@@ -7,9 +7,9 @@ const prisma = new PrismaClient();
 // Get all moods for a project
 router.get("/project/:projectId", async (req, res) => {
   try {
-    const { projectId } = req.params;
+    const projectId = req.params.projectId as string;
     const moods = await prisma.mood.findMany({
-      where: { projectId: String(projectId) },
+      where: { projectId },
       orderBy: { name: 'asc' }
     });
     res.json(moods);
@@ -21,7 +21,7 @@ router.get("/project/:projectId", async (req, res) => {
 // Get a specific mood
 router.get("/:moodId", async (req, res) => {
   try {
-    const { moodId } = req.params;
+    const moodId = req.params.moodId as string;
     const mood = await prisma.mood.findUnique({
       where: { id: moodId }
     });
@@ -39,7 +39,7 @@ router.get("/:moodId", async (req, res) => {
 // Create a mood for a project
 router.post("/project/:projectId", async (req, res) => {
   try {
-    const { projectId } = req.params;
+    const projectId = req.params.projectId as string;
     const { name, tag } = req.body;
     
     if (!name?.trim()) {
@@ -75,7 +75,7 @@ router.post("/project/:projectId", async (req, res) => {
 // Update a mood
 router.put("/:moodId", async (req, res) => {
   try {
-    const { moodId } = req.params;
+    const moodId = req.params.moodId as string;
     const { name, tag } = req.body;
     
     if (!name?.trim()) {
@@ -102,7 +102,7 @@ router.put("/:moodId", async (req, res) => {
 // Delete a mood
 router.delete("/:moodId", async (req, res) => {
   try {
-    const { moodId } = req.params;
+    const moodId = req.params.moodId as string;
     
     await prisma.mood.delete({
       where: { id: moodId }
