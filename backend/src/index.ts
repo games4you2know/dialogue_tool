@@ -15,6 +15,7 @@ import backgroundRouter from "./routes/background.js";
 import folderRouter from "./routes/folder.js";
 import moodRouter from "./routes/mood.js";
 import callRouter from "./routes/calls.js";
+import bankTransactionRouter from "./routes/bankTransactions.js";
 
 const app = express();
 
@@ -50,6 +51,7 @@ app.use("/api/backgrounds", backgroundRouter);
 app.use("/api/folders", folderRouter);
 app.use("/api/moods", moodRouter);
 app.use("/api/calls", callRouter);
+app.use("/api/bank-transactions", bankTransactionRouter);
 
 const port = process.env.PORT || 4000;
 app.listen(port, ()=>console.log("Server running on", port));

@@ -319,6 +319,9 @@ router.get("/:projectId/export", authMiddleware, async (req, res) => {
             character: {}
           },
           orderBy: { callDate: 'asc' }
+        },
+        bankTransactions: {
+          orderBy: { createdAt: 'asc' }
         }
       }
     });
@@ -390,6 +393,12 @@ router.get("/:projectId/export", authMiddleware, async (req, res) => {
         callDate: call.callDate,
         duration: call.duration,
         status: call.status
+      })),
+      bankTransactions: (project as any).bankTransactions.map((tx: any) => ({
+        type: tx.type,
+        name: tx.name,
+        paymentType: tx.paymentType,
+        amount: tx.amount
       }))
     };
     

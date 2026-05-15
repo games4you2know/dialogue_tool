@@ -153,6 +153,17 @@ export interface Call {
   updatedAt: Date;
 }
 
+export interface BankTransaction {
+  id: string;
+  projectId: string;
+  type: number;        // 0=dépense, 1=recette
+  name: string;
+  paymentType: number; // 0=carte, 1=virement, 2=prélèvement
+  amount: number;
+  createdAt: Date;
+  updatedAt: Date;
+}
+
 export interface UnityDialogueExport {
   dialogues: Dialogue[];
   characters: Character[];
