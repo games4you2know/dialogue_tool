@@ -41,6 +41,7 @@ model Project {
   backgrounds      Background[]
   folders          Folder[]
   moods            Mood[]
+  calls            Call[]
 
   @@map("projects")
 }
@@ -93,6 +94,7 @@ model Character {
   smsMessages        SMSMessage[]
   dialogueCharacters DialogueCharacter[]
   smsParticipants    SMSParticipant[]
+  calls              Call[]
 
   @@map("characters")
 }
@@ -273,6 +275,23 @@ model SMSAnswer {
   question SMSQuestion @relation(fields: [questionId], references: [id], onDelete: Cascade)
 
   @@map("sms_answers")
+}
+
+model Call {
+  id          String   @id @default(uuid())
+  projectId   String
+  characterId String?
+  callDate    DateTime @default(now())
+  duration    Int      @default(0)
+  status      Int      @default(0) // 0=missed, 1=incoming, 2=outgoing
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  // Relations
+  project   Project    @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  character Character? @relation(fields: [characterId], references: [id], onDelete: SetNull)
+
+  @@map("calls")
 }
 
 // Suppression de l'ancien modèle Scene qui n'est plus utilisé

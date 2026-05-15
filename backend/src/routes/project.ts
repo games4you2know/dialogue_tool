@@ -313,6 +313,12 @@ router.get("/:projectId/export", authMiddleware, async (req, res) => {
             }
           },
           orderBy: { createdAt: 'asc' }
+        },
+        calls: {
+          include: {
+            character: {}
+          },
+          orderBy: { callDate: 'asc' }
         }
       }
     });
@@ -378,6 +384,12 @@ router.get("/:projectId/export", authMiddleware, async (req, res) => {
             }))
           }))
         })),
+      })),
+      calls: (project as any).calls.map((call: any) => ({
+        contactTag: call.character?.tag || null,
+        callDate: call.callDate,
+        duration: call.duration,
+        status: call.status
       }))
     };
     

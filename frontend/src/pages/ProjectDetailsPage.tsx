@@ -8,6 +8,7 @@ import SMSManager from '../components/SMSManager';
 import DialogueEditor from '../components/DialogueEditor';
 import BackgroundManager from '../components/BackgroundManager';
 import MoodManager from '../components/MoodManager';
+import CallManager from '../components/CallManager';
 
 const ProjectDetailsPage: React.FC = () => {
   const { projectId } = useParams<{ projectId: string }>();
@@ -202,6 +203,9 @@ const ProjectDetailsPage: React.FC = () => {
         )}
         {activeTab === 'sms' && (
           <SMSManager projectId={projectId} />
+        )}
+        {activeTab === 'calls' && (
+          <CallManager projectId={projectId} />
         )}
       </div>
     </div>

@@ -141,6 +141,18 @@ export interface SMSConversation {
   updatedAt: Date;
 }
 
+export interface Call {
+  id: string;
+  projectId: string;
+  characterId?: string;
+  character?: Character;
+  callDate: Date;
+  duration: number;
+  status: number; // 0=missed, 1=incoming, 2=outgoing
+  createdAt: Date;
+  updatedAt: Date;
+}
+
 export interface UnityDialogueExport {
   dialogues: Dialogue[];
   characters: Character[];
