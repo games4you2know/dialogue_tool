@@ -243,8 +243,6 @@ const SMSManager: React.FC<SMSManagerProps> = ({ projectId }) => {
     }
   };
 
-  const getCharacterName = (characterId: string) => characters.find(c => c.id === characterId)?.name || 'Inconnu';
-
   if (loading) {
     return (
       <div className="flex items-center justify-center p-8">
