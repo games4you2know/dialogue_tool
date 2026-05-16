@@ -41,21 +41,7 @@ router.get("/", authMiddleware, async (req, res) => {
             }
           }
         },
-        smsConversations: {
-          include: {
-            participants: {
-              include: {
-                character: true
-              }
-            },
-            messages: {
-              include: {
-                character: true
-              },
-              orderBy: { timestamp: 'asc' }
-            }
-          }
-        }
+        smsConversations: true
       },
       orderBy: { updatedAt: 'desc' }
     });
@@ -100,21 +86,7 @@ router.get("/", authMiddleware, async (req, res) => {
             }
           }
         },
-        smsConversations: {
-          include: {
-            participants: {
-              include: {
-                character: true
-              }
-            },
-            messages: {
-              include: {
-                character: true
-              },
-              orderBy: { timestamp: 'asc' }
-            }
-          }
-        }
+        smsConversations: true
       },
       orderBy: { updatedAt: 'desc' }
     });
