@@ -200,6 +200,7 @@ const SMSManager: React.FC<SMSManagerProps> = ({ projectId }) => {
       }
       const updated = await smsService.getSMSConversation(selectedConversation.id);
       setSelectedConversation(updated);
+      setConversations(prev => prev.map(c => c.id === updated.id ? updated : c));
       resetMessageForm();
     } catch (err) {
       setError("Erreur lors de l'ajout du message");
@@ -213,6 +214,7 @@ const SMSManager: React.FC<SMSManagerProps> = ({ projectId }) => {
       await smsService.deleteSMSMessage(messageId);
       const updated = await smsService.getSMSConversation(selectedConversation.id);
       setSelectedConversation(updated);
+      setConversations(prev => prev.map(c => c.id === updated.id ? updated : c));
     } catch (err) {
       setError('Erreur lors de la suppression du message');
     }
@@ -505,6 +507,7 @@ const SMSManager: React.FC<SMSManagerProps> = ({ projectId }) => {
                                           await smsService.deleteSMSQuestion(question.id);
                                           const updated = await smsService.getSMSConversation(selectedConversation.id);
                                           setSelectedConversation(updated);
+                                          setConversations(prev => prev.map(c => c.id === updated.id ? updated : c));
                                         }
                                       }}
                                       className="text-red-600 hover:bg-red-50 px-2 py-1 rounded text-sm"
