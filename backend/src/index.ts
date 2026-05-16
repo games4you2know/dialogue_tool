@@ -17,6 +17,7 @@ import moodRouter from "./routes/mood.js";
 import callRouter from "./routes/calls.js";
 import bankTransactionRouter from "./routes/bankTransactions.js";
 import socialPostRouter from "./routes/socialPosts.js";
+import journalEntryRouter from "./routes/journalEntries.js";
 
 const app = express();
 
@@ -54,6 +55,7 @@ app.use("/api/moods", moodRouter);
 app.use("/api/calls", callRouter);
 app.use("/api/bank-transactions", bankTransactionRouter);
 app.use("/api/social-posts", socialPostRouter);
+app.use("/api/journal-entries", journalEntryRouter);
 
 const port = process.env.PORT || 4000;
 app.listen(port, ()=>console.log("Server running on", port));

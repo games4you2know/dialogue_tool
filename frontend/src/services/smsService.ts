@@ -1,4 +1,4 @@
-import type { SMSConversation, SMSMessage, SMSQuestion, SMSReactions } from '../types/index';
+import type { SMSConversation, SMSMessage, SMSQuestion } from '../types/index';
 import API_BASE_URL from '../config/api';
 
 export interface CreateSMSConversationRequest {
@@ -6,23 +6,25 @@ export interface CreateSMSConversationRequest {
   name: string;
   tag: string;
   folderId?: string;
+  npcCharacterId?: string;
 }
 
 export interface UpdateSMSConversationRequest {
   name: string;
   tag?: string;
   folderId?: string;
+  npcCharacterId?: string | null;
 }
 
 export interface CreateSMSMessageRequest {
-  characterId?: string;
+  fromCpu: boolean;
   text: string;
   timestamp?: Date;
 }
 
 export interface UpdateSMSMessageRequest {
-  characterId?: string;
-  text: string;
+  fromCpu?: boolean;
+  text?: string;
   timestamp?: Date;
 }
 
@@ -32,8 +34,8 @@ export interface CreateSMSQuestionRequest {
     content: string;
     isCorrect: boolean;
     order?: number;
+    cpuResponse?: string;
   }[];
-  reactions: SMSReactions;
 }
 
 export interface UpdateSMSQuestionRequest {
@@ -42,18 +44,15 @@ export interface UpdateSMSQuestionRequest {
     content: string;
     isCorrect: boolean;
     order?: number;
+    cpuResponse?: string;
   }[];
-  reactions: SMSReactions;
 }
 
 export const smsService = {
-  // Get all SMS conversations for a project
   async getSMSConversationsByProject(projectId: string): Promise<SMSConversation[]> {
     try {
       const response = await fetch(`${API_BASE_URL}/sms/project/${projectId}`);
-      if (!response.ok) {
-        throw new Error(`Error fetching SMS conversations: ${response.statusText}`);
-      }
+      if (!response.ok) throw new Error(`Error fetching SMS conversations: ${response.statusText}`);
       return response.json();
     } catch (error) {
       console.error('Error fetching SMS conversations:', error);
@@ -61,13 +60,10 @@ export const smsService = {
     }
   },
 
-  // Get single SMS conversation
   async getSMSConversation(conversationId: string): Promise<SMSConversation> {
     try {
       const response = await fetch(`${API_BASE_URL}/sms/${conversationId}`);
-      if (!response.ok) {
-        throw new Error(`Error fetching SMS conversation: ${response.statusText}`);
-      }
+      if (!response.ok) throw new Error(`Error fetching SMS conversation: ${response.statusText}`);
       return response.json();
     } catch (error) {
       console.error('Error fetching SMS conversation:', error);
@@ -75,21 +71,14 @@ export const smsService = {
     }
   },
 
-  // Create new SMS conversation
   async createSMSConversation(conversation: CreateSMSConversationRequest): Promise<SMSConversation> {
     try {
       const response = await fetch(`${API_BASE_URL}/sms`, {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
+        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(conversation),
       });
-      
-      if (!response.ok) {
-        throw new Error(`Error creating SMS conversation: ${response.statusText}`);
-      }
-      
+      if (!response.ok) throw new Error(`Error creating SMS conversation: ${response.statusText}`);
       return response.json();
     } catch (error) {
       console.error('Error creating SMS conversation:', error);
@@ -97,21 +86,14 @@ export const smsService = {
     }
   },
 
-  // Update SMS conversation
   async updateSMSConversation(conversationId: string, conversation: UpdateSMSConversationRequest): Promise<SMSConversation> {
     try {
       const response = await fetch(`${API_BASE_URL}/sms/${conversationId}`, {
         method: 'PUT',
-        headers: {
-          'Content-Type': 'application/json',
-        },
+        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(conversation),
       });
-      
-      if (!response.ok) {
-        throw new Error(`Error updating SMS conversation: ${response.statusText}`);
-      }
-      
+      if (!response.ok) throw new Error(`Error updating SMS conversation: ${response.statusText}`);
       return response.json();
     } catch (error) {
       console.error('Error updating SMS conversation:', error);
@@ -119,39 +101,24 @@ export const smsService = {
     }
   },
 
-  // Delete SMS conversation
   async deleteSMSConversation(conversationId: string): Promise<void> {
     try {
-      const response = await fetch(`${API_BASE_URL}/sms/${conversationId}`, {
-        method: 'DELETE',
-      });
-      
-      if (!response.ok) {
-        throw new Error(`Error deleting SMS conversation: ${response.statusText}`);
-      }
+      const response = await fetch(`${API_BASE_URL}/sms/${conversationId}`, { method: 'DELETE' });
+      if (!response.ok) throw new Error(`Error deleting SMS conversation: ${response.statusText}`);
     } catch (error) {
       console.error('Error deleting SMS conversation:', error);
       throw error;
     }
   },
 
-  // SMS Messages Management
-  
-  // Add SMS message
   async addSMSMessage(conversationId: string, message: CreateSMSMessageRequest): Promise<SMSMessage> {
     try {
       const response = await fetch(`${API_BASE_URL}/sms/${conversationId}/messages`, {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
+        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(message),
       });
-      
-      if (!response.ok) {
-        throw new Error(`Error adding SMS message: ${response.statusText}`);
-      }
-      
+      if (!response.ok) throw new Error(`Error adding SMS message: ${response.statusText}`);
       return response.json();
     } catch (error) {
       console.error('Error adding SMS message:', error);
@@ -159,21 +126,14 @@ export const smsService = {
     }
   },
 
-  // Update SMS message
   async updateSMSMessage(messageId: string, message: UpdateSMSMessageRequest): Promise<SMSMessage> {
     try {
       const response = await fetch(`${API_BASE_URL}/sms/messages/${messageId}`, {
         method: 'PUT',
-        headers: {
-          'Content-Type': 'application/json',
-        },
+        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(message),
       });
-      
-      if (!response.ok) {
-        throw new Error(`Error updating SMS message: ${response.statusText}`);
-      }
-      
+      if (!response.ok) throw new Error(`Error updating SMS message: ${response.statusText}`);
       return response.json();
     } catch (error) {
       console.error('Error updating SMS message:', error);
@@ -181,39 +141,24 @@ export const smsService = {
     }
   },
 
-  // Delete SMS message
   async deleteSMSMessage(messageId: string): Promise<void> {
     try {
-      const response = await fetch(`${API_BASE_URL}/sms/messages/${messageId}`, {
-        method: 'DELETE',
-      });
-      
-      if (!response.ok) {
-        throw new Error(`Error deleting SMS message: ${response.statusText}`);
-      }
+      const response = await fetch(`${API_BASE_URL}/sms/messages/${messageId}`, { method: 'DELETE' });
+      if (!response.ok) throw new Error(`Error deleting SMS message: ${response.statusText}`);
     } catch (error) {
       console.error('Error deleting SMS message:', error);
       throw error;
     }
   },
 
-  // SMS Questions Management
-  
-  // Add question to SMS message
   async addSMSQuestion(messageId: string, question: CreateSMSQuestionRequest): Promise<SMSQuestion> {
     try {
       const response = await fetch(`${API_BASE_URL}/sms/messages/${messageId}/questions`, {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
+        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(question),
       });
-      
-      if (!response.ok) {
-        throw new Error(`Error adding SMS question: ${response.statusText}`);
-      }
-      
+      if (!response.ok) throw new Error(`Error adding SMS question: ${response.statusText}`);
       return response.json();
     } catch (error) {
       console.error('Error adding SMS question:', error);
@@ -221,21 +166,14 @@ export const smsService = {
     }
   },
 
-  // Update SMS question
   async updateSMSQuestion(questionId: string, question: UpdateSMSQuestionRequest): Promise<SMSQuestion> {
     try {
       const response = await fetch(`${API_BASE_URL}/sms/questions/${questionId}`, {
         method: 'PUT',
-        headers: {
-          'Content-Type': 'application/json',
-        },
+        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(question),
       });
-      
-      if (!response.ok) {
-        throw new Error(`Error updating SMS question: ${response.statusText}`);
-      }
-      
+      if (!response.ok) throw new Error(`Error updating SMS question: ${response.statusText}`);
       return response.json();
     } catch (error) {
       console.error('Error updating SMS question:', error);
@@ -243,16 +181,10 @@ export const smsService = {
     }
   },
 
-  // Delete SMS question
   async deleteSMSQuestion(questionId: string): Promise<void> {
     try {
-      const response = await fetch(`${API_BASE_URL}/sms/questions/${questionId}`, {
-        method: 'DELETE',
-      });
-      
-      if (!response.ok) {
-        throw new Error(`Error deleting SMS question: ${response.statusText}`);
-      }
+      const response = await fetch(`${API_BASE_URL}/sms/questions/${questionId}`, { method: 'DELETE' });
+      if (!response.ok) throw new Error(`Error deleting SMS question: ${response.statusText}`);
     } catch (error) {
       console.error('Error deleting SMS question:', error);
       throw error;

@@ -44,6 +44,7 @@ model Project {
   calls            Call[]
   bankTransactions BankTransaction[]
   socialPosts      SocialPost[]
+  journalEntries   JournalEntry[]
 
   @@map("projects")
 }
@@ -91,12 +92,13 @@ model Character {
   color     String?
 
   // Relations
-  project            Project             @relation(fields: [projectId], references: [id], onDelete: Cascade)
-  dialogueLines      DialogueLine[]
-  smsMessages        SMSMessage[]
-  dialogueCharacters DialogueCharacter[]
-  smsParticipants    SMSParticipant[]
-  calls              Call[]
+  project                 Project             @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  dialogueLines           DialogueLine[]
+  smsMessages             SMSMessage[]
+  dialogueCharacters      DialogueCharacter[]
+  smsParticipants         SMSParticipant[]
+  calls                   Call[]
+  smsConversationsAsNpc   SMSConversation[]   @relation("SMSConversationNPC")
 
   @@map("characters")
 }
@@ -202,18 +204,20 @@ model DialogueChoice {
 }
 
 model SMSConversation {
-  id          String   @id @default(uuid())
-  projectId   String
-  folderId    String?
-  name        String
-  tag         String
-  isGroupChat Boolean  @default(false)
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
+  id             String   @id @default(uuid())
+  projectId      String
+  folderId       String?
+  name           String
+  tag            String
+  npcCharacterId String?
+  isGroupChat    Boolean  @default(false)
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
 
   // Relations
   project      Project          @relation(fields: [projectId], references: [id], onDelete: Cascade)
   folder       Folder?          @relation(fields: [folderId], references: [id], onDelete: SetNull)
+  npcCharacter Character?       @relation("SMSConversationNPC", fields: [npcCharacterId], references: [id], onDelete: SetNull)
   messages     SMSMessage[]
   participants SMSParticipant[]
 
@@ -236,7 +240,8 @@ model SMSParticipant {
 model SMSMessage {
   id             String   @id @default(uuid())
   conversationId String
-  characterId    String
+  characterId    String?
+  fromCpu        Boolean  @default(false)
   text           String
   timestamp      DateTime @default(now())
   isRead         Boolean  @default(false)
@@ -245,7 +250,7 @@ model SMSMessage {
 
   // Relations
   conversation SMSConversation @relation(fields: [conversationId], references: [id], onDelete: Cascade)
-  character    Character       @relation(fields: [characterId], references: [id], onDelete: Cascade)
+  character    Character?      @relation(fields: [characterId], references: [id], onDelete: SetNull)
   questions    SMSQuestion[]
 
   @@map("sms_messages")
@@ -255,8 +260,8 @@ model SMSQuestion {
   id                String   @id @default(uuid())
   messageId         String
   content           String
-  positiveReactions String // JSON array of strings
-  negativeReactions String // JSON array of strings
+  positiveReactions String?  // JSON array of strings (deprecated)
+  negativeReactions String?  // JSON array of strings (deprecated)
   createdAt         DateTime @default(now())
 
   // Relations
@@ -267,11 +272,12 @@ model SMSQuestion {
 }
 
 model SMSAnswer {
-  id         String  @id @default(uuid())
-  questionId String
-  content    String
-  isCorrect  Boolean @default(false)
-  order      Int     @default(0)
+  id          String  @id @default(uuid())
+  questionId  String
+  content     String
+  isCorrect   Boolean @default(false)
+  order       Int     @default(0)
+  cpuResponse String? // Response from CPU when this wrong answer is selected
 
   // Relations
   question SMSQuestion @relation(fields: [questionId], references: [id], onDelete: Cascade)
@@ -322,6 +328,22 @@ model SocialPost {
   project Project @relation(fields: [projectId], references: [id], onDelete: Cascade)
 
   @@map("social_posts")
+}
+
+model JournalEntry {
+  id        String   @id @default(uuid())
+  projectId String
+  entryId   String
+  context   String
+  emotion   Int      @default(1) // 1=heureux, 2=en colère, 3=triste
+  content   String
+  info      String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  project Project @relation(fields: [projectId], references: [id], onDelete: Cascade)
+
+  @@map("journal_entries")
 }
 
 // Suppression de l'ancien modèle Scene qui n'est plus utilisé

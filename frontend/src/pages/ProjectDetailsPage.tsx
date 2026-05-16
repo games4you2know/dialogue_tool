@@ -11,12 +11,13 @@ import MoodManager from '../components/MoodManager';
 import CallManager from '../components/CallManager';
 import BankTransactionManager from '../components/BankTransactionManager';
 import SocialPostManager from '../components/SocialPostManager';
+import JournalManager from '../components/JournalManager';
 
 const ProjectDetailsPage: React.FC = () => {
   const { projectId } = useParams<{ projectId: string }>();
   const navigate = useNavigate();
   const [project, setProject] = useState<Project | null>(null);
-  const [activeTab, setActiveTab] = useState<'characters' | 'backgrounds' | 'moods' | 'dialogues' | 'sms' | 'calls' | 'bank' | 'social'>('characters');
+  const [activeTab, setActiveTab] = useState<'characters' | 'backgrounds' | 'moods' | 'dialogues' | 'sms' | 'calls' | 'bank' | 'social' | 'journal'>('characters');
   const [editingDialogue, setEditingDialogue] = useState<Dialogue | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -203,6 +204,16 @@ const ProjectDetailsPage: React.FC = () => {
           >
             Réseaux
           </button>
+          <button
+            onClick={() => setActiveTab('journal')}
+            className={`px-6 py-3 text-sm font-medium border-b-2 transition-colors ${
+              activeTab === 'journal'
+                ? 'border-blue-600 text-blue-600'
+                : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+            }`}
+          >
+            Journal
+          </button>
         </nav>
       </div>
 
@@ -234,6 +245,9 @@ const ProjectDetailsPage: React.FC = () => {
         )}
         {activeTab === 'social' && (
           <SocialPostManager projectId={projectId} />
+        )}
+        {activeTab === 'journal' && (
+          <JournalManager projectId={projectId} />
         )}
       </div>
     </div>
