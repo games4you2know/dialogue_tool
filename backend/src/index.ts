@@ -57,5 +57,11 @@ app.use("/api/bank-transactions", bankTransactionRouter);
 app.use("/api/social-posts", socialPostRouter);
 app.use("/api/journal-entries", journalEntryRouter);
 
+app.use(express.static(path.join(process.cwd(), "../frontend/dist")));
+
+app.get("*", (_req, res) => {
+  res.sendFile(path.join(process.cwd(), "../frontend/dist", "index.html"));
+});
+
 const port = process.env.PORT || 4000;
 app.listen(port, ()=>console.log("Server running on", port));
