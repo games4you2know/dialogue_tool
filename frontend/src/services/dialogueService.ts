@@ -14,8 +14,8 @@ export interface UpdateDialogueRequest {
   name: string;
   tag?: string;
   description?: string;
-  folderId?: string;
-  backgroundId?: string;
+  folderId?: string | null;
+  backgroundId?: string | null;
 }
 
 export interface CreateDialogueLineRequest {

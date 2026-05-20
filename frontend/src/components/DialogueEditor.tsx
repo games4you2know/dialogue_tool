@@ -178,8 +178,10 @@ const DialogueEditor: React.FC<DialogueEditorProps> = ({ dialogue, projectId, on
     try {
       await dialogueService.updateDialogue(currentDialogue.id, {
         name: currentDialogue.name,
+        tag: currentDialogue.tag,
         description: currentDialogue.description,
-        backgroundId: backgroundId || undefined
+        folderId: currentDialogue.folderId || null,
+        backgroundId: backgroundId || null
       });
       await reload();
       setShowBackgroundSelector(false);

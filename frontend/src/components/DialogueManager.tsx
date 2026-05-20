@@ -120,8 +120,10 @@ const DialogueManager: React.FC<DialogueManagerProps> = ({ projectId, onEditDial
     try {
       const updateData: UpdateDialogueRequest = {
         name: formData.name,
+        tag: formData.tag || undefined,
         description: formData.description || undefined,
-        backgroundId: formData.backgroundId || undefined
+        folderId: formData.folderId || null,
+        backgroundId: formData.backgroundId || null
       };
       
       await dialogueService.updateDialogue(editingDialogue.id, updateData);
@@ -353,6 +355,20 @@ const DialogueManager: React.FC<DialogueManagerProps> = ({ projectId, onEditDial
                   placeholder="Nom du dialogue"
                   required
                 />
+              </div>
+
+              <div className="mb-4">
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Tag (export) *
+                </label>
+                <input
+                  type="text"
+                  value={formData.tag}
+                  onChange={(e) => setFormData({ ...formData, tag: e.target.value })}
+                  className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  placeholder="Ex: CHAP03_01_00"
+                />
+                <p className="text-xs text-gray-400 mt-1">Identifiant unique pour l'export. Généré depuis le nom si laissé vide.</p>
               </div>
 
               <div className="mb-4">
