@@ -199,10 +199,10 @@ const DialogueEditor: React.FC<DialogueEditorProps> = ({ dialogue, projectId, on
         characterId: selectedLine.characterId,
         text: selectedLine.text,
         order: selectedLine.order,
-        mainCharacterMoodId: displaySettings.mainCharacterMoodId || undefined,
+        mainCharacterMoodId: displaySettings.mainCharacterMoodId || null,
         mainCharacterPosition: displaySettings.mainCharacterPosition,
-        secondaryCharacterId: displaySettings.secondaryCharacterId || undefined,
-        secondaryCharacterMoodId: displaySettings.secondaryCharacterMoodId || undefined,
+        secondaryCharacterId: displaySettings.secondaryCharacterId || null,
+        secondaryCharacterMoodId: displaySettings.secondaryCharacterMoodId || null,
         secondaryCharacterPosition: displaySettings.secondaryCharacterPosition,
         triggerCameraShake: displaySettings.triggerCameraShake,
         memory: displaySettings.memory

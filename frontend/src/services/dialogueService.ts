@@ -35,10 +35,10 @@ export interface UpdateDialogueLineRequest {
   characterId?: string;
   text: string;
   order?: number;
-  secondaryCharacterId?: string;
-  mainCharacterMoodId?: string;
+  secondaryCharacterId?: string | null;
+  mainCharacterMoodId?: string | null;
   mainCharacterPosition?: number;
-  secondaryCharacterMoodId?: string;
+  secondaryCharacterMoodId?: string | null;
   secondaryCharacterPosition?: number;
   triggerCameraShake?: boolean;
   memory?: string;
