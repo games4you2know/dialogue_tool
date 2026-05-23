@@ -88,6 +88,7 @@ export interface Dialogue {
   name: string;
   tag: string;
   description?: string;
+  doFadeAtEnd: boolean;
   characters: Character[];
   lines: DialogueLine[];
   tags?: string[];

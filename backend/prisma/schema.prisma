@@ -140,6 +140,7 @@ model Dialogue {
   tag          String
   description  String?
   tags         String?
+  doFadeAtEnd  Boolean  @default(false)
   createdAt    DateTime @default(now())
   updatedAt    DateTime @updatedAt
 

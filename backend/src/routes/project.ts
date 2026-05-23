@@ -312,6 +312,7 @@ router.get("/:projectId/export", authMiddleware, async (req, res) => {
       dialogues: (project as any).dialogues.map((dialogue: any) => ({
         tag: dialogue.tag,
         backgroundTag: dialogue.background?.tag || null,
+        doFadeAtEnd: dialogue.doFadeAtEnd,
         lines: dialogue.lines.map((line: any) => {
           const secondaryCharacterTag = line.secondaryCharacterId ? characterTagMap.get(line.secondaryCharacterId) || null : null;
           const mainMoodTag = line.mainCharacterMoodId ? moodTagMap.get(line.mainCharacterMoodId) || null : null;

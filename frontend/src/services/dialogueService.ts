@@ -8,6 +8,7 @@ export interface CreateDialogueRequest {
   description?: string;
   folderId?: string;
   backgroundId?: string;
+  doFadeAtEnd?: boolean;
 }
 
 export interface UpdateDialogueRequest {
@@ -16,6 +17,7 @@ export interface UpdateDialogueRequest {
   description?: string;
   folderId?: string | null;
   backgroundId?: string | null;
+  doFadeAtEnd?: boolean;
 }
 
 export interface CreateDialogueLineRequest {

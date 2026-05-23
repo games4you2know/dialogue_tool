@@ -21,6 +21,7 @@ interface DialogueFormData {
   description: string;
   folderId: string;
   backgroundId: string;
+  doFadeAtEnd: boolean;
 }
 
 const DialogueManager: React.FC<DialogueManagerProps> = ({ projectId, onEditDialogue }) => {
@@ -40,7 +41,8 @@ const DialogueManager: React.FC<DialogueManagerProps> = ({ projectId, onEditDial
     tag: '',
     description: '',
     folderId: '',
-    backgroundId: ''
+    backgroundId: '',
+    doFadeAtEnd: false
   });
 
   const descriptionEditor = useEditor({
@@ -84,7 +86,7 @@ const DialogueManager: React.FC<DialogueManagerProps> = ({ projectId, onEditDial
   }, [projectId]);
 
   const resetForm = () => {
-    setFormData({ name: '', tag: '', description: '', folderId: selectedFolderId || '', backgroundId: '' });
+    setFormData({ name: '', tag: '', description: '', folderId: selectedFolderId || '', backgroundId: '', doFadeAtEnd: false });
     if (descriptionEditor) {
       descriptionEditor.commands.setContent('');
     }
@@ -101,7 +103,8 @@ const DialogueManager: React.FC<DialogueManagerProps> = ({ projectId, onEditDial
         tag: formData.tag || formData.name.toUpperCase().replace(/\s+/g, '_'),
         description: formData.description || undefined,
         folderId: formData.folderId || undefined,
-        backgroundId: formData.backgroundId || undefined
+        backgroundId: formData.backgroundId || undefined,
+        doFadeAtEnd: formData.doFadeAtEnd
       };
       
       await dialogueService.createDialogue(newDialogue);
@@ -123,7 +126,8 @@ const DialogueManager: React.FC<DialogueManagerProps> = ({ projectId, onEditDial
         tag: formData.tag || undefined,
         description: formData.description || undefined,
         folderId: formData.folderId || null,
-        backgroundId: formData.backgroundId || null
+        backgroundId: formData.backgroundId || null,
+        doFadeAtEnd: formData.doFadeAtEnd
       };
       
       await dialogueService.updateDialogue(editingDialogue.id, updateData);
@@ -155,7 +159,8 @@ const DialogueManager: React.FC<DialogueManagerProps> = ({ projectId, onEditDial
       tag: dialogue.tag,
       description: description,
       folderId: dialogue.folderId || '',
-      backgroundId: dialogue.backgroundId || ''
+      backgroundId: dialogue.backgroundId || '',
+      doFadeAtEnd: dialogue.doFadeAtEnd ?? false
     });
     if (descriptionEditor) {
       descriptionEditor.commands.setContent(description);
@@ -428,6 +433,18 @@ const DialogueManager: React.FC<DialogueManagerProps> = ({ projectId, onEditDial
                     </option>
                   ))}
                 </select>
+              </div>
+
+              <div className="mb-4">
+                <label className="flex items-center gap-3 cursor-pointer select-none">
+                  <input
+                    type="checkbox"
+                    checked={formData.doFadeAtEnd}
+                    onChange={(e) => setFormData({ ...formData, doFadeAtEnd: e.target.checked })}
+                    className="w-4 h-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500"
+                  />
+                  <span className="text-sm font-medium text-gray-700">Fondu au noir en fin de dialogue</span>
+                </label>
               </div>
 
               <div className="flex gap-3">

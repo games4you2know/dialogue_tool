@@ -64,7 +64,7 @@ router.get("/:dialogueId", async (req, res) => {
 // Create dialogue
 router.post("/", async (req, res) => {
   try {
-    const { projectId, name, tag, description, folderId, backgroundId } = req.body;
+    const { projectId, name, tag, description, folderId, backgroundId, doFadeAtEnd } = req.body;
     
     if (!name?.trim()) {
       return res.status(400).json({ error: 'Dialogue name is required' });
@@ -85,7 +85,8 @@ router.post("/", async (req, res) => {
         tag: tag.trim(),
         description: description?.trim() || null,
         folderId: folderId || null,
-        backgroundId: backgroundId || null
+        backgroundId: backgroundId || null,
+        doFadeAtEnd: doFadeAtEnd === true
       },
       include: {
         background: true,
@@ -113,7 +114,7 @@ router.post("/", async (req, res) => {
 router.put("/:dialogueId", async (req, res) => {
   try {
     const dialogueId = req.params.dialogueId as string;
-    const { name, tag, description, folderId, backgroundId } = req.body;
+    const { name, tag, description, folderId, backgroundId, doFadeAtEnd } = req.body;
     
     if (!name?.trim()) {
       return res.status(400).json({ error: 'Dialogue name is required' });
@@ -126,7 +127,8 @@ router.put("/:dialogueId", async (req, res) => {
         ...(tag && { tag: tag.trim() }),
         description: description?.trim() || null,
         folderId: folderId || null,
-        backgroundId: backgroundId || null
+        backgroundId: backgroundId || null,
+        ...(doFadeAtEnd !== undefined && { doFadeAtEnd: doFadeAtEnd === true })
       },
       include: {
         background: true,
