@@ -292,7 +292,6 @@ const SMSManager: React.FC<SMSManagerProps> = ({ projectId }) => {
     }
   };
 
-  const getCharacterName = (characterId: string) => characters.find(c => c.id === characterId)?.name || 'Inconnu';
 
   if (loading) {
     return (
