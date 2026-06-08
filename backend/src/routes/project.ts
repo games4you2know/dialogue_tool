@@ -274,6 +274,9 @@ router.get("/:projectId/export", authMiddleware, async (req, res) => {
                 }
               },
               orderBy: { timestamp: 'asc' }
+            },
+            streamEndpoints: {
+              orderBy: { timestamp: 'asc' }
             }
           },
           orderBy: { createdAt: 'asc' }
@@ -336,10 +339,10 @@ router.get("/:projectId/export", authMiddleware, async (req, res) => {
           };
         }),
       })),
-      smsConversations: (project as any).smsConversations.map((conversation: any) => ({
-        tag: conversation.tag,
-        characterId: conversation.npcCharacter?.tag || null,
-        messages: conversation.messages.map((message: any) => ({
+      smsConversations: (project as any).smsConversations.map((conversation: any) => {
+        const characterTag: string = conversation.npcCharacter?.tag || 'UNKNOWN';
+
+        const formatMessage = (message: any) => ({
           fromCpu: message.fromCpu,
           content: message.text,
           timestamp: message.timestamp,
@@ -353,8 +356,43 @@ router.get("/:projectId/export", authMiddleware, async (req, res) => {
               }))
             }))
           })
-        })),
-      })),
+        });
+
+        const endpoints: any[] = conversation.streamEndpoints || [];
+
+        // Merge messages and endpoints sorted by timestamp, then split into streams
+        const taggedMessages = conversation.messages.map((m: any) => ({ ...m, _type: 'message' }));
+        const taggedEndpoints = endpoints.map((e: any) => ({ ...e, _type: 'endpoint' }));
+        const items = [...taggedMessages, ...taggedEndpoints].sort(
+          (a: any, b: any) => new Date(a.timestamp).getTime() - new Date(b.timestamp).getTime()
+        );
+
+        const rawStreams: any[][] = [];
+        let currentChunk: any[] | null = null;
+
+        for (const item of items) {
+          if (item._type === 'endpoint') {
+            currentChunk = [];
+            rawStreams.push(currentChunk);
+          } else {
+            if (!currentChunk) {
+              currentChunk = [];
+              rawStreams.push(currentChunk);
+            }
+            currentChunk.push(formatMessage(item));
+          }
+        }
+
+        const messageStreams = rawStreams.map((chunk, idx) => ({
+          streamId: `${characterTag}_${String(idx + 1).padStart(3, '0')}`,
+          messages: chunk
+        }));
+
+        return {
+          characterId: characterTag,
+          messageStreams
+        };
+      }),
       calls: (project as any).calls.map((call: any) => ({
         contactTag: call.character?.tag || null,
         callDate: call.callDate,

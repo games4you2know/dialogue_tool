@@ -6,7 +6,7 @@ import DatePicker from 'react-datepicker';
 import { registerLocale } from 'react-datepicker';
 import { fr } from 'date-fns/locale/fr';
 import { format } from 'date-fns';
-import type { SMSConversation, Character, SMSMessage, SMSQuestion } from '../types/index';
+import type { SMSConversation, Character, SMSMessage, SMSQuestion, SMSStreamEndpoint } from '../types/index';
 import { smsService, type CreateSMSConversationRequest, type UpdateSMSConversationRequest, type CreateSMSMessageRequest } from '../services/smsService';
 import { characterService } from '../services/characterService';
 import { folderService } from '../services/folderService';
@@ -22,8 +22,6 @@ interface SMSManagerProps {
 }
 
 interface ConversationFormData {
-  name: string;
-  tag: string;
   folderId: string;
   npcCharacterId: string;
 }
@@ -41,6 +39,10 @@ interface MessageFormData {
   }[];
 }
 
+interface EndpointFormData {
+  timestamp: Date;
+}
+
 const SMSManager: React.FC<SMSManagerProps> = ({ projectId }) => {
   const [conversations, setConversations] = useState<SMSConversation[]>([]);
   const [characters, setCharacters] = useState<Character[]>([]);
@@ -56,7 +58,7 @@ const SMSManager: React.FC<SMSManagerProps> = ({ projectId }) => {
   const [showMoveMenu, setShowMoveMenu] = useState<string | null>(null);
   const [folders, setFolders] = useState<any[]>([]);
   const [conversationFormData, setConversationFormData] = useState<ConversationFormData>({
-    name: '', tag: '', folderId: '', npcCharacterId: ''
+    folderId: '', npcCharacterId: ''
   });
   const [messageFormData, setMessageFormData] = useState<MessageFormData>({
     fromCpu: false,
@@ -69,6 +71,9 @@ const SMSManager: React.FC<SMSManagerProps> = ({ projectId }) => {
   const [showQuestionEditor, setShowQuestionEditor] = useState(false);
   const [editingQuestionMessageId, setEditingQuestionMessageId] = useState<string | null>(null);
   const [editingQuestion, setEditingQuestion] = useState<SMSQuestion | null>(null);
+  const [showEndpointForm, setShowEndpointForm] = useState(false);
+  const [editingEndpoint, setEditingEndpoint] = useState<SMSStreamEndpoint | null>(null);
+  const [endpointFormData, setEndpointFormData] = useState<EndpointFormData>({ timestamp: new Date() });
 
   const messageEditor = useEditor({
     extensions: [
@@ -105,7 +110,7 @@ const SMSManager: React.FC<SMSManagerProps> = ({ projectId }) => {
   useEffect(() => { loadData(); }, [projectId]);
 
   const resetConversationForm = () => {
-    setConversationFormData({ name: '', tag: '', folderId: selectedFolderId || '', npcCharacterId: '' });
+    setConversationFormData({ folderId: selectedFolderId || '', npcCharacterId: '' });
     setEditingConversation(null);
     setShowConversationForm(false);
   };
@@ -125,8 +130,6 @@ const SMSManager: React.FC<SMSManagerProps> = ({ projectId }) => {
     try {
       const data: CreateSMSConversationRequest = {
         projectId,
-        name: conversationFormData.name,
-        tag: conversationFormData.tag || conversationFormData.name.toUpperCase().replace(/\s+/g, '_'),
         folderId: conversationFormData.folderId || undefined,
         npcCharacterId: conversationFormData.npcCharacterId || undefined
       };
@@ -143,8 +146,6 @@ const SMSManager: React.FC<SMSManagerProps> = ({ projectId }) => {
     if (!editingConversation) return;
     try {
       const data: UpdateSMSConversationRequest = {
-        name: conversationFormData.name,
-        tag: conversationFormData.tag,
         npcCharacterId: conversationFormData.npcCharacterId || null
       };
       await smsService.updateSMSConversation(editingConversation.id, data);
@@ -200,7 +201,6 @@ const SMSManager: React.FC<SMSManagerProps> = ({ projectId }) => {
       }
       const updated = await smsService.getSMSConversation(selectedConversation.id);
       setSelectedConversation(updated);
-      setConversations(prev => prev.map(c => c.id === updated.id ? updated : c));
       resetMessageForm();
     } catch (err) {
       setError("Erreur lors de l'ajout du message");
@@ -214,17 +214,64 @@ const SMSManager: React.FC<SMSManagerProps> = ({ projectId }) => {
       await smsService.deleteSMSMessage(messageId);
       const updated = await smsService.getSMSConversation(selectedConversation.id);
       setSelectedConversation(updated);
-      setConversations(prev => prev.map(c => c.id === updated.id ? updated : c));
     } catch (err) {
       setError('Erreur lors de la suppression du message');
+    }
+  };
+
+  const resetEndpointForm = () => {
+    setEndpointFormData({ timestamp: new Date() });
+    setEditingEndpoint(null);
+    setShowEndpointForm(false);
+  };
+
+  const openAddEndpointForm = (timestamp: Date) => {
+    setEditingEndpoint(null);
+    setEndpointFormData({ timestamp });
+    setShowEndpointForm(true);
+  };
+
+  const handleCreateEndpoint = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!selectedConversation) return;
+    try {
+      await smsService.createStreamEndpoint(selectedConversation.id, endpointFormData.timestamp);
+      const updated = await smsService.getSMSConversation(selectedConversation.id);
+      setSelectedConversation(updated);
+      resetEndpointForm();
+    } catch (err) {
+      setError("Erreur lors de la création de l'endpoint");
+    }
+  };
+
+  const handleUpdateEndpoint = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!editingEndpoint || !selectedConversation) return;
+    try {
+      await smsService.updateStreamEndpoint(editingEndpoint.id, { timestamp: endpointFormData.timestamp });
+      const updated = await smsService.getSMSConversation(selectedConversation.id);
+      setSelectedConversation(updated);
+      resetEndpointForm();
+    } catch (err) {
+      setError("Erreur lors de la modification de l'endpoint");
+    }
+  };
+
+  const handleDeleteEndpoint = async (endpointId: string) => {
+    if (!confirm('Supprimer cet endpoint de stream ?')) return;
+    if (!selectedConversation) return;
+    try {
+      await smsService.deleteStreamEndpoint(endpointId);
+      const updated = await smsService.getSMSConversation(selectedConversation.id);
+      setSelectedConversation(updated);
+    } catch (err) {
+      setError("Erreur lors de la suppression de l'endpoint");
     }
   };
 
   const startEditConversation = (conversation: SMSConversation) => {
     setEditingConversation(conversation);
     setConversationFormData({
-      name: conversation.name,
-      tag: conversation.tag,
       folderId: conversation.folderId || '',
       npcCharacterId: conversation.npcCharacterId || ''
     });
@@ -244,6 +291,8 @@ const SMSManager: React.FC<SMSManagerProps> = ({ projectId }) => {
       setError('Erreur lors du déplacement de la conversation');
     }
   };
+
+  const getCharacterName = (characterId: string) => characters.find(c => c.id === characterId)?.name || 'Inconnu';
 
   if (loading) {
     return (
@@ -297,12 +346,14 @@ const SMSManager: React.FC<SMSManagerProps> = ({ projectId }) => {
             <div key={conversation.id} className="bg-white border border-gray-200 rounded-lg p-4 shadow-sm">
               <div className="flex justify-between items-start mb-2">
                 <div className="flex-1">
-                  <h3 className="font-semibold text-gray-800">{conversation.name}</h3>
+                  <h3 className="font-semibold text-gray-800">
+                    {conversation.npcCharacter?.name || <span className="text-gray-400 italic">Aucun personnage</span>}
+                  </h3>
                   <div className="flex items-center gap-3 mt-1 text-sm text-gray-500">
                     <span>{conversation.messages?.length || 0} message(s)</span>
-                    {conversation.npcCharacter && (
-                      <span className="bg-blue-100 text-blue-700 px-2 py-0.5 rounded text-xs font-medium">
-                        NPC: {conversation.npcCharacter.name}
+                    {conversation.streamEndpoints?.length > 0 && (
+                      <span className="bg-orange-100 text-orange-700 px-2 py-0.5 rounded text-xs font-medium">
+                        {conversation.streamEndpoints.length} endpoint(s)
                       </span>
                     )}
                   </div>
@@ -377,37 +428,15 @@ const SMSManager: React.FC<SMSManagerProps> = ({ projectId }) => {
               {editingConversation ? 'Modifier la conversation' : 'Nouvelle conversation SMS'}
             </h3>
             <form onSubmit={editingConversation ? handleUpdateConversation : handleCreateConversation}>
-              <div className="mb-4">
-                <label className="block text-sm font-medium text-gray-700 mb-2">Nom *</label>
-                <input
-                  type="text"
-                  value={conversationFormData.name}
-                  onChange={(e) => setConversationFormData({ ...conversationFormData, name: e.target.value })}
-                  className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
-                  placeholder="Nom de la conversation"
-                  required
-                />
-              </div>
-
-              <div className="mb-4">
-                <label className="block text-sm font-medium text-gray-700 mb-2">Tag</label>
-                <input
-                  type="text"
-                  value={conversationFormData.tag}
-                  onChange={(e) => setConversationFormData({ ...conversationFormData, tag: e.target.value })}
-                  className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500 font-mono"
-                  placeholder="ex: DYLAN_01 (auto-généré si vide)"
-                />
-              </div>
-
               <div className="mb-6">
-                <label className="block text-sm font-medium text-gray-700 mb-2">Personnage NPC</label>
+                <label className="block text-sm font-medium text-gray-700 mb-2">Personnage NPC *</label>
                 <select
                   value={conversationFormData.npcCharacterId}
                   onChange={(e) => setConversationFormData({ ...conversationFormData, npcCharacterId: e.target.value })}
                   className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  required
                 >
-                  <option value="">Aucun</option>
+                  <option value="">Sélectionner un personnage</option>
                   {characters.map((c) => (
                     <option key={c.id} value={c.id}>{c.name}</option>
                   ))}
@@ -433,10 +462,9 @@ const SMSManager: React.FC<SMSManagerProps> = ({ projectId }) => {
           <div className="bg-white rounded-lg p-6 w-full max-w-4xl max-h-[90vh] flex flex-col">
             <div className="flex justify-between items-center mb-4">
               <div>
-                <h3 className="text-xl font-bold">{selectedConversation.name}</h3>
-                {selectedConversation.npcCharacter && (
-                  <p className="text-sm text-gray-500 mt-0.5">NPC : {selectedConversation.npcCharacter.name}</p>
-                )}
+                <h3 className="text-xl font-bold">
+                  {selectedConversation.npcCharacter?.name || 'Conversation SMS'}
+                </h3>
               </div>
               <div className="flex gap-2">
                 <button onClick={() => setShowMessageForm(true)} className="bg-green-600 text-white px-3 py-2 rounded-lg hover:bg-green-700 transition-colors">
@@ -449,99 +477,167 @@ const SMSManager: React.FC<SMSManagerProps> = ({ projectId }) => {
             </div>
 
             <div className="flex-1 bg-gray-50 rounded-lg p-4 overflow-y-auto">
-              {selectedConversation.messages && selectedConversation.messages.length > 0 ? (
-                <div className="space-y-3">
-                  {selectedConversation.messages.map((message) => (
-                    <div key={message.id} className={`flex ${message.fromCpu ? 'justify-start' : 'justify-end'}`}>
-                      <div className={`max-w-[70%] ${message.fromCpu ? '' : ''}`}>
-                        <div className="flex items-center gap-2 mb-1">
-                          <span className={`text-xs font-medium px-2 py-0.5 rounded ${message.fromCpu ? 'bg-gray-200 text-gray-700' : 'bg-blue-100 text-blue-700'}`}>
-                            {message.fromCpu ? (selectedConversation.npcCharacter?.name || 'CPU') : 'Joueur'}
-                          </span>
-                          <span className="text-xs text-gray-500">
-                            {format(new Date(message.timestamp), 'dd/MM/yyyy HH:mm', { locale: fr })}
-                          </span>
-                        </div>
+              {(() => {
+                const timeline = [
+                  ...(selectedConversation.messages || []).map(m => ({ ...m, _kind: 'message' as const })),
+                  ...(selectedConversation.streamEndpoints || []).map(e => ({ ...e, _kind: 'endpoint' as const }))
+                ].sort((a, b) => new Date(a.timestamp).getTime() - new Date(b.timestamp).getTime());
 
-                        {message.text && (
-                          <div className={`rounded-lg p-3 shadow-sm relative group ${message.fromCpu ? 'bg-white' : 'bg-blue-50'}`}>
-                            <div dangerouslySetInnerHTML={{ __html: message.text }} />
-                            <div className="absolute top-2 right-2 hidden group-hover:flex gap-1">
+                if (timeline.length === 0) {
+                  return <div className="text-center py-8 text-gray-500">Aucun message dans cette conversation</div>;
+                }
+
+                const AddEndpointButton = ({ afterTimestamp, beforeTimestamp }: { afterTimestamp?: Date; beforeTimestamp?: Date }) => {
+                  const ts = afterTimestamp && beforeTimestamp
+                    ? new Date((new Date(afterTimestamp).getTime() + new Date(beforeTimestamp).getTime()) / 2)
+                    : afterTimestamp
+                      ? new Date(new Date(afterTimestamp).getTime() + 1000)
+                      : new Date();
+                  return (
+                    <div className="flex items-center justify-center my-1 opacity-0 hover:opacity-100 transition-opacity group">
+                      <button
+                        onClick={() => openAddEndpointForm(ts)}
+                        className="flex items-center gap-1 text-xs text-orange-600 bg-orange-50 border border-orange-200 px-3 py-1 rounded-full hover:bg-orange-100 transition-colors"
+                      >
+                        + Endpoint ici
+                      </button>
+                    </div>
+                  );
+                };
+
+                return (
+                  <div className="space-y-1">
+                    {timeline.map((item, idx) => {
+                      const prevItem = idx > 0 ? timeline[idx - 1] : undefined;
+                      const nextItem = idx < timeline.length - 1 ? timeline[idx + 1] : undefined;
+
+                      if (item._kind === 'endpoint') {
+                        return (
+                          <div key={`ep-${item.id}`}>
+                            <AddEndpointButton afterTimestamp={prevItem ? new Date(prevItem.timestamp) : undefined} beforeTimestamp={new Date(item.timestamp)} />
+                            <div className="flex items-center gap-2 my-2">
+                              <div className="flex-1 h-px bg-orange-300" />
+                            <div className="flex items-center gap-2 bg-orange-50 border border-orange-200 rounded-full px-3 py-1">
+                              <span className="text-xs text-orange-600">— limite de stream —</span>
                               <button
                                 onClick={() => {
-                                  setEditingMessage(message);
-                                  setMessageFormData({
-                                    fromCpu: message.fromCpu,
-                                    text: message.text || '',
-                                    timestamp: new Date(message.timestamp),
-                                    isQuestion: false,
-                                    questionContent: '',
-                                    answers: []
-                                  });
-                                  messageEditor?.commands.setContent(message.text || '');
-                                  setShowMessageForm(true);
+                                  setEditingEndpoint(item as unknown as SMSStreamEndpoint);
+                                  setEndpointFormData({ timestamp: new Date(item.timestamp) });
+                                  setShowEndpointForm(true);
                                 }}
-                                className="text-blue-600 hover:text-blue-700 bg-white shadow-sm px-2 py-1 rounded"
+                                className="text-orange-500 hover:text-orange-700 text-xs"
+                                title="Modifier la position"
                               >✏️</button>
-                              <button onClick={() => handleDeleteMessage(message.id)} className="text-red-600 hover:text-red-700 bg-white shadow-sm px-2 py-1 rounded">
-                                🗑️
-                              </button>
+                              <button
+                                onClick={() => handleDeleteEndpoint(item.id)}
+                                className="text-red-400 hover:text-red-600 text-xs"
+                                title="Supprimer"
+                              >🗑️</button>
                             </div>
+                              <div className="flex-1 h-px bg-orange-300" />
+                            </div>
+                            {!nextItem && <AddEndpointButton afterTimestamp={new Date(item.timestamp)} />}
                           </div>
-                        )}
+                        );
+                      }
 
-                        {message.questions && message.questions.length > 0 && (
-                          <div className="space-y-2 mt-1">
-                            {message.questions.map((question) => (
-                              <div key={question.id} className="bg-white rounded-lg p-3 shadow-sm border-l-4 border-blue-500">
-                                <div className="flex justify-between items-start mb-2">
-                                  <span className="font-medium text-gray-900 text-sm">❓ {question.content}</span>
-                                  <div className="flex gap-1 ml-2">
+                      const message = item as typeof item & { fromCpu: boolean; text: string; questions?: any[] };
+                      return (
+                        <div key={`msg-${item.id}`}>
+                          <AddEndpointButton afterTimestamp={prevItem ? new Date(prevItem.timestamp) : undefined} beforeTimestamp={new Date(item.timestamp)} />
+                          <div className={`flex ${message.fromCpu ? 'justify-start' : 'justify-end'}`}>
+                            <div className="max-w-[70%]">
+                              <div className="flex items-center gap-2 mb-1">
+                                <span className={`text-xs font-medium px-2 py-0.5 rounded ${message.fromCpu ? 'bg-gray-200 text-gray-700' : 'bg-blue-100 text-blue-700'}`}>
+                                  {message.fromCpu ? (selectedConversation.npcCharacter?.name || 'CPU') : 'Joueur'}
+                                </span>
+                                <span className="text-xs text-gray-500">
+                                  {format(new Date(message.timestamp), 'dd/MM/yyyy HH:mm', { locale: fr })}
+                                </span>
+                              </div>
+
+                              {message.text && (
+                                <div className={`rounded-lg p-3 shadow-sm relative group ${message.fromCpu ? 'bg-white' : 'bg-blue-50'}`}>
+                                  <div dangerouslySetInnerHTML={{ __html: message.text }} />
+                                  <div className="absolute top-2 right-2 hidden group-hover:flex gap-1">
                                     <button
-                                      onClick={() => { setEditingQuestion(question); setEditingQuestionMessageId(message.id); setShowQuestionEditor(true); }}
-                                      className="text-blue-600 hover:bg-blue-50 px-2 py-1 rounded text-sm"
-                                    >✏️</button>
-                                    <button
-                                      onClick={async () => {
-                                        if (confirm('Supprimer cette question ?')) {
-                                          await smsService.deleteSMSQuestion(question.id);
-                                          const updated = await smsService.getSMSConversation(selectedConversation.id);
-                                          setSelectedConversation(updated);
-                                          setConversations(prev => prev.map(c => c.id === updated.id ? updated : c));
-                                        }
+                                      onClick={() => {
+                                        setEditingMessage(message as unknown as SMSMessage);
+                                        setMessageFormData({
+                                          fromCpu: message.fromCpu,
+                                          text: message.text || '',
+                                          timestamp: new Date(message.timestamp),
+                                          isQuestion: false,
+                                          questionContent: '',
+                                          answers: []
+                                        });
+                                        messageEditor?.commands.setContent(message.text || '');
+                                        setShowMessageForm(true);
                                       }}
-                                      className="text-red-600 hover:bg-red-50 px-2 py-1 rounded text-sm"
-                                    >🗑️</button>
+                                      className="text-blue-600 hover:text-blue-700 bg-white shadow-sm px-2 py-1 rounded"
+                                    >✏️</button>
+                                    <button onClick={() => handleDeleteMessage(item.id)} className="text-red-600 hover:text-red-700 bg-white shadow-sm px-2 py-1 rounded">
+                                      🗑️
+                                    </button>
                                   </div>
                                 </div>
-                                <div className="space-y-1">
-                                  {question.answers.map((answer, idx) => (
-                                    <div key={answer.id} className={`px-3 py-1.5 rounded text-sm ${answer.isCorrect ? 'bg-green-50 border border-green-200 text-green-800' : 'bg-gray-50 border border-gray-200 text-gray-700'}`}>
-                                      <div className="flex items-center gap-2">
-                                        <span className={`font-medium flex-shrink-0 ${answer.isCorrect ? 'text-green-600' : 'text-gray-400'}`}>
-                                          {answer.isCorrect ? '✓' : `${idx + 1}.`}
-                                        </span>
-                                        <span>{answer.content}</span>
-                                      </div>
-                                      {!answer.isCorrect && answer.cpuResponse && (
-                                        <div className="mt-1 ml-5 text-xs text-gray-500 italic border-l-2 border-gray-300 pl-2">
-                                          CPU: {answer.cpuResponse}
+                              )}
+
+                              {message.questions && message.questions.length > 0 && (
+                                <div className="space-y-2 mt-1">
+                                  {message.questions.map((question: any) => (
+                                    <div key={question.id} className="bg-white rounded-lg p-3 shadow-sm border-l-4 border-blue-500">
+                                      <div className="flex justify-between items-start mb-2">
+                                        <span className="font-medium text-gray-900 text-sm">❓ {question.content}</span>
+                                        <div className="flex gap-1 ml-2">
+                                          <button
+                                            onClick={() => { setEditingQuestion(question); setEditingQuestionMessageId(item.id); setShowQuestionEditor(true); }}
+                                            className="text-blue-600 hover:bg-blue-50 px-2 py-1 rounded text-sm"
+                                          >✏️</button>
+                                          <button
+                                            onClick={async () => {
+                                              if (confirm('Supprimer cette question ?')) {
+                                                await smsService.deleteSMSQuestion(question.id);
+                                                const updated = await smsService.getSMSConversation(selectedConversation.id);
+                                                setSelectedConversation(updated);
+                                              }
+                                            }}
+                                            className="text-red-600 hover:bg-red-50 px-2 py-1 rounded text-sm"
+                                          >🗑️</button>
                                         </div>
-                                      )}
+                                      </div>
+                                      <div className="space-y-1">
+                                        {question.answers.map((answer: any, idx: number) => (
+                                          <div key={answer.id} className={`px-3 py-1.5 rounded text-sm ${answer.isCorrect ? 'bg-green-50 border border-green-200 text-green-800' : 'bg-gray-50 border border-gray-200 text-gray-700'}`}>
+                                            <div className="flex items-center gap-2">
+                                              <span className={`font-medium flex-shrink-0 ${answer.isCorrect ? 'text-green-600' : 'text-gray-400'}`}>
+                                                {answer.isCorrect ? '✓' : `${idx + 1}.`}
+                                              </span>
+                                              <span>{answer.content}</span>
+                                            </div>
+                                            {!answer.isCorrect && answer.cpuResponse && (
+                                              <div className="mt-1 ml-5 text-xs text-gray-500 italic border-l-2 border-gray-300 pl-2">
+                                                CPU: {answer.cpuResponse}
+                                              </div>
+                                            )}
+                                          </div>
+                                        ))}
+                                      </div>
                                     </div>
                                   ))}
                                 </div>
-                              </div>
-                            ))}
+                              )}
+                            </div>
                           </div>
-                        )}
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              ) : (
-                <div className="text-center py-8 text-gray-500">Aucun message dans cette conversation</div>
-              )}
+                          {idx === timeline.length - 1 && (
+                            <AddEndpointButton afterTimestamp={new Date(item.timestamp)} />
+                          )}
+                        </div>
+                      );
+                    })}
+                  </div>
+                );
+              })()}
             </div>
           </div>
         </div>
@@ -706,6 +802,42 @@ const SMSManager: React.FC<SMSManagerProps> = ({ projectId }) => {
                 </button>
                 <button type="submit" className="flex-1 bg-green-600 text-white px-4 py-2 rounded-lg hover:bg-green-700 transition-colors">
                   {editingMessage ? 'Modifier' : 'Ajouter'}
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {/* Modal endpoint de stream */}
+      {showEndpointForm && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-[60]">
+          <div className="bg-white rounded-lg p-6 w-full max-w-sm">
+            <h3 className="text-lg font-bold mb-4">
+              {editingEndpoint ? 'Déplacer la limite de stream' : 'Nouvelle limite de stream'}
+            </h3>
+            <form onSubmit={editingEndpoint ? handleUpdateEndpoint : handleCreateEndpoint}>
+              <div className="mb-6">
+                <label className="block text-sm font-medium text-gray-700 mb-2">Position (date/heure)</label>
+                <DatePicker
+                  selected={endpointFormData.timestamp}
+                  onChange={(date) => setEndpointFormData({ ...endpointFormData, timestamp: date || new Date() })}
+                  showTimeSelect
+                  timeFormat="HH:mm"
+                  timeIntervals={1}
+                  dateFormat="dd/MM/yyyy HH:mm"
+                  locale="fr"
+                  className="w-full"
+                  autoFocus
+                />
+                <p className="text-xs text-gray-500 mt-1">La limite sera placée à cette position dans la chronologie des messages.</p>
+              </div>
+              <div className="flex gap-3">
+                <button type="button" onClick={resetEndpointForm} className="flex-1 bg-gray-100 text-gray-700 px-4 py-2 rounded-lg hover:bg-gray-200 transition-colors">
+                  Annuler
+                </button>
+                <button type="submit" className="flex-1 bg-orange-500 text-white px-4 py-2 rounded-lg hover:bg-orange-600 transition-colors">
+                  {editingEndpoint ? 'Déplacer' : 'Créer'}
                 </button>
               </div>
             </form>
