@@ -1,17 +1,13 @@
-import type { SMSConversation, SMSMessage, SMSQuestion } from '../types/index';
+import type { SMSConversation, SMSMessage, SMSQuestion, SMSStreamEndpoint } from '../types/index';
 import API_BASE_URL from '../config/api';
 
 export interface CreateSMSConversationRequest {
   projectId: string;
-  name: string;
-  tag: string;
   folderId?: string;
   npcCharacterId?: string;
 }
 
 export interface UpdateSMSConversationRequest {
-  name: string;
-  tag?: string;
   folderId?: string;
   npcCharacterId?: string | null;
 }
@@ -187,6 +183,46 @@ export const smsService = {
       if (!response.ok) throw new Error(`Error deleting SMS question: ${response.statusText}`);
     } catch (error) {
       console.error('Error deleting SMS question:', error);
+      throw error;
+    }
+  },
+
+  async createStreamEndpoint(conversationId: string, timestamp: Date): Promise<SMSStreamEndpoint> {
+    try {
+      const response = await fetch(`${API_BASE_URL}/sms/${conversationId}/stream-endpoints`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ timestamp }),
+      });
+      if (!response.ok) throw new Error(`Error creating stream endpoint: ${response.statusText}`);
+      return response.json();
+    } catch (error) {
+      console.error('Error creating stream endpoint:', error);
+      throw error;
+    }
+  },
+
+  async updateStreamEndpoint(endpointId: string, data: { timestamp?: Date }): Promise<SMSStreamEndpoint> {
+    try {
+      const response = await fetch(`${API_BASE_URL}/sms/stream-endpoints/${endpointId}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(data),
+      });
+      if (!response.ok) throw new Error(`Error updating stream endpoint: ${response.statusText}`);
+      return response.json();
+    } catch (error) {
+      console.error('Error updating stream endpoint:', error);
+      throw error;
+    }
+  },
+
+  async deleteStreamEndpoint(endpointId: string): Promise<void> {
+    try {
+      const response = await fetch(`${API_BASE_URL}/sms/stream-endpoints/${endpointId}`, { method: 'DELETE' });
+      if (!response.ok) throw new Error(`Error deleting stream endpoint: ${response.statusText}`);
+    } catch (error) {
+      console.error('Error deleting stream endpoint:', error);
       throw error;
     }
   },

@@ -22,6 +22,9 @@ const conversationInclude = {
       }
     },
     orderBy: { timestamp: 'asc' as const }
+  },
+  streamEndpoints: {
+    orderBy: { timestamp: 'asc' as const }
   }
 };
 
@@ -32,7 +35,7 @@ router.get("/project/:projectId", async (req, res) => {
     const conversations = await prisma.sMSConversation.findMany({
       where: { projectId },
       include: conversationInclude,
-      orderBy: { name: 'asc' }
+      orderBy: { createdAt: 'asc' }
     });
     res.json(conversations);
   } catch (error) {
@@ -58,14 +61,8 @@ router.get("/:conversationId", async (req, res) => {
 // Create SMS conversation
 router.post("/", async (req, res) => {
   try {
-    const { projectId, name, tag, folderId, npcCharacterId } = req.body;
+    const { projectId, folderId, npcCharacterId } = req.body;
     
-    if (!name?.trim()) {
-      return res.status(400).json({ error: 'Conversation name is required' });
-    }
-    if (!tag?.trim()) {
-      return res.status(400).json({ error: 'Conversation tag is required' });
-    }
     if (!projectId) {
       return res.status(400).json({ error: 'Project ID is required' });
     }
@@ -73,8 +70,6 @@ router.post("/", async (req, res) => {
     const conversation = await prisma.sMSConversation.create({
       data: {
         projectId,
-        name: name.trim(),
-        tag: tag.trim(),
         folderId: folderId || null,
         npcCharacterId: npcCharacterId || null
       },
@@ -91,18 +86,12 @@ router.post("/", async (req, res) => {
 router.put("/:conversationId", async (req, res) => {
   try {
     const { conversationId } = req.params;
-    const { name, tag, folderId, npcCharacterId } = req.body;
-    
-    if (!name?.trim()) {
-      return res.status(400).json({ error: 'Conversation name is required' });
-    }
+    const { folderId, npcCharacterId } = req.body;
 
     const conversation = await prisma.sMSConversation.update({
       where: { id: conversationId },
       data: {
-        name: name.trim(),
-        ...(tag && { tag: tag.trim() }),
-        folderId: folderId || null,
+        folderId: folderId !== undefined ? (folderId || null) : undefined,
         ...(npcCharacterId !== undefined && { npcCharacterId: npcCharacterId || null })
       },
       include: conversationInclude
@@ -312,6 +301,63 @@ router.delete("/questions/:questionId", async (req, res) => {
       return res.status(404).json({ error: 'Question not found' });
     }
     res.status(500).json({ error: 'Failed to delete question' });
+  }
+});
+
+// Create stream endpoint
+router.post("/:conversationId/stream-endpoints", async (req, res) => {
+  try {
+    const { conversationId } = req.params;
+    const { timestamp } = req.body;
+
+    const endpoint = await prisma.sMSStreamEndpoint.create({
+      data: {
+        conversationId,
+        timestamp: timestamp ? new Date(timestamp) : new Date()
+      }
+    });
+
+    res.status(201).json(endpoint);
+  } catch (error) {
+    res.status(500).json({ error: 'Failed to create stream endpoint' });
+  }
+});
+
+// Update stream endpoint
+router.put("/stream-endpoints/:endpointId", async (req, res) => {
+  try {
+    const { endpointId } = req.params;
+    const { timestamp } = req.body;
+
+    const endpoint = await prisma.sMSStreamEndpoint.update({
+      where: { id: endpointId },
+      data: {
+        ...(timestamp && { timestamp: new Date(timestamp) })
+      }
+    });
+
+    res.json(endpoint);
+  } catch (error: any) {
+    if (error.code === 'P2025') {
+      return res.status(404).json({ error: 'Stream endpoint not found' });
+    }
+    res.status(500).json({ error: 'Failed to update stream endpoint' });
+  }
+});
+
+// Delete stream endpoint
+router.delete("/stream-endpoints/:endpointId", async (req, res) => {
+  try {
+    const { endpointId } = req.params;
+    await prisma.sMSStreamEndpoint.delete({
+      where: { id: endpointId }
+    });
+    res.status(204).send();
+  } catch (error: any) {
+    if (error.code === 'P2025') {
+      return res.status(404).json({ error: 'Stream endpoint not found' });
+    }
+    res.status(500).json({ error: 'Failed to delete stream endpoint' });
   }
 });
 

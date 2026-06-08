@@ -124,16 +124,21 @@ export interface SMSMessage {
   questions?: SMSQuestion[];
 }
 
+export interface SMSStreamEndpoint {
+  id: string;
+  conversationId: string;
+  timestamp: Date;
+}
+
 export interface SMSConversation {
   id: string;
   projectId: string;
   folderId?: string;
-  name: string;
-  tag: string;
   npcCharacterId?: string;
   npcCharacter?: Character;
   participants: { id: string; character: Character }[];
   messages: SMSMessage[];
+  streamEndpoints: SMSStreamEndpoint[];
   isGroupChat: boolean;
   createdAt: Date;
   updatedAt: Date;

@@ -140,6 +140,7 @@ model Dialogue {
   tag          String
   description  String?
   tags         String?
+  doFadeAtEnd  Boolean  @default(false)
   createdAt    DateTime @default(now())
   updatedAt    DateTime @updatedAt
 
@@ -207,21 +208,30 @@ model SMSConversation {
   id             String   @id @default(uuid())
   projectId      String
   folderId       String?
-  name           String
-  tag            String
   npcCharacterId String?
   isGroupChat    Boolean  @default(false)
   createdAt      DateTime @default(now())
   updatedAt      DateTime @updatedAt
 
   // Relations
-  project      Project          @relation(fields: [projectId], references: [id], onDelete: Cascade)
-  folder       Folder?          @relation(fields: [folderId], references: [id], onDelete: SetNull)
-  npcCharacter Character?       @relation("SMSConversationNPC", fields: [npcCharacterId], references: [id], onDelete: SetNull)
-  messages     SMSMessage[]
-  participants SMSParticipant[]
+  project         Project             @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  folder          Folder?             @relation(fields: [folderId], references: [id], onDelete: SetNull)
+  npcCharacter    Character?          @relation("SMSConversationNPC", fields: [npcCharacterId], references: [id], onDelete: SetNull)
+  messages        SMSMessage[]
+  participants    SMSParticipant[]
+  streamEndpoints SMSStreamEndpoint[]
 
   @@map("sms_conversations")
+}
+
+model SMSStreamEndpoint {
+  id             String   @id @default(uuid())
+  conversationId String
+  timestamp      DateTime @default(now())
+
+  conversation SMSConversation @relation(fields: [conversationId], references: [id], onDelete: Cascade)
+
+  @@map("sms_stream_endpoints")
 }
 
 model SMSParticipant {
