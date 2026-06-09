@@ -100,6 +100,7 @@ export interface SMSAnswer {
   id: string;
   questionId: string;
   content: string;
+  shortContent?: string;
   isCorrect: boolean;
   order: number;
   cpuResponse?: string;
@@ -118,6 +119,7 @@ export interface SMSMessage {
   characterId?: string;
   fromCpu: boolean;
   text: string;
+  shortContent?: string;
   timestamp: Date;
   isRead: boolean;
   messageType: 'text' | 'image' | 'emoji';

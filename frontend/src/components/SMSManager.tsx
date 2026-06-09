@@ -29,11 +29,12 @@ interface ConversationFormData {
 interface MessageFormData {
   fromCpu: boolean;
   text: string;
+  shortContent: string;
   timestamp: Date;
   isQuestion: boolean;
-  questionContent: string;
   answers: {
     content: string;
+    shortContent: string;
     isCorrect: boolean;
     cpuResponse: string;
   }[];
@@ -63,9 +64,9 @@ const SMSManager: React.FC<SMSManagerProps> = ({ projectId }) => {
   const [messageFormData, setMessageFormData] = useState<MessageFormData>({
     fromCpu: false,
     text: '',
+    shortContent: '',
     timestamp: new Date(),
     isQuestion: false,
-    questionContent: '',
     answers: [],
   });
   const [showQuestionEditor, setShowQuestionEditor] = useState(false);
@@ -117,8 +118,8 @@ const SMSManager: React.FC<SMSManagerProps> = ({ projectId }) => {
 
   const resetMessageForm = () => {
     setMessageFormData({
-      fromCpu: false, text: '', timestamp: new Date(),
-      isQuestion: false, questionContent: '', answers: []
+      fromCpu: false, text: '', shortContent: '', timestamp: new Date(),
+      isQuestion: false, answers: []
     });
     messageEditor?.commands.setContent('');
     setEditingMessage(null);
@@ -175,23 +176,26 @@ const SMSManager: React.FC<SMSManagerProps> = ({ projectId }) => {
         await smsService.updateSMSMessage(editingMessage.id, {
           fromCpu: messageFormData.fromCpu,
           text: messageFormData.text,
+          shortContent: (!messageFormData.fromCpu && messageFormData.shortContent.trim()) ? messageFormData.shortContent.trim() : undefined,
           timestamp: messageFormData.timestamp
         });
       } else {
         const newMessage: CreateSMSMessageRequest = {
           fromCpu: messageFormData.fromCpu,
-          text: messageFormData.isQuestion ? '' : messageFormData.text,
+          text: messageFormData.text,
+          shortContent: (!messageFormData.fromCpu && messageFormData.shortContent.trim()) ? messageFormData.shortContent.trim() : undefined,
           timestamp: messageFormData.timestamp
         };
         const createdMessage = await smsService.addSMSMessage(selectedConversation.id, newMessage);
 
-        if (messageFormData.isQuestion && messageFormData.questionContent.trim()) {
+        if (messageFormData.isQuestion) {
           await smsService.addSMSQuestion(createdMessage.id, {
-            content: messageFormData.questionContent,
+            content: messageFormData.text,
             answers: messageFormData.answers
               .filter(a => a.content.trim())
               .map((a, i) => ({
                 content: a.content,
+                shortContent: a.shortContent.trim() || undefined,
                 isCorrect: a.isCorrect,
                 order: i,
                 cpuResponse: a.cpuResponse.trim() || undefined
@@ -555,39 +559,43 @@ const SMSManager: React.FC<SMSManagerProps> = ({ projectId }) => {
                                 </span>
                               </div>
 
-                              {message.text && (
-                                <div className={`rounded-lg p-3 shadow-sm relative group ${message.fromCpu ? 'bg-white' : 'bg-blue-50'}`}>
-                                  <div dangerouslySetInnerHTML={{ __html: message.text }} />
-                                  <div className="absolute top-2 right-2 hidden group-hover:flex gap-1">
-                                    <button
-                                      onClick={() => {
-                                        setEditingMessage(message as unknown as SMSMessage);
+                              <div className={`rounded-lg p-3 shadow-sm relative group ${message.fromCpu ? 'bg-white' : 'bg-blue-50'}`}>
+                                {message.text && <div dangerouslySetInnerHTML={{ __html: message.text }} />}
+                                {!message.fromCpu && (message as any).shortContent && (
+                                  <div className="mt-1 text-xs text-gray-400 italic border-t border-gray-100 pt-1">
+                                    Court : {(message as any).shortContent}
+                                  </div>
+                                )}
+                                <div className="absolute top-2 right-2 hidden group-hover:flex gap-1">
+                                  <button
+                                    onClick={() => {
+                                      const msg = message as unknown as SMSMessage;
+                                      setEditingMessage(msg);
                                         setMessageFormData({
                                           fromCpu: message.fromCpu,
                                           text: message.text || '',
+                                          shortContent: msg.shortContent || '',
                                           timestamp: new Date(message.timestamp),
                                           isQuestion: false,
-                                          questionContent: '',
                                           answers: []
                                         });
-                                        messageEditor?.commands.setContent(message.text || '');
-                                        setShowMessageForm(true);
-                                      }}
-                                      className="text-blue-600 hover:text-blue-700 bg-white shadow-sm px-2 py-1 rounded"
-                                    >✏️</button>
-                                    <button onClick={() => handleDeleteMessage(item.id)} className="text-red-600 hover:text-red-700 bg-white shadow-sm px-2 py-1 rounded">
-                                      🗑️
-                                    </button>
-                                  </div>
+                                      messageEditor?.commands.setContent(message.text || '');
+                                      setShowMessageForm(true);
+                                    }}
+                                    className="text-blue-600 hover:text-blue-700 bg-white shadow-sm px-2 py-1 rounded"
+                                  >✏️</button>
+                                  <button onClick={() => handleDeleteMessage(item.id)} className="text-red-600 hover:text-red-700 bg-white shadow-sm px-2 py-1 rounded">
+                                    🗑️
+                                  </button>
                                 </div>
-                              )}
+                              </div>
 
                               {message.questions && message.questions.length > 0 && (
                                 <div className="space-y-2 mt-1">
                                   {message.questions.map((question: any) => (
                                     <div key={question.id} className="bg-white rounded-lg p-3 shadow-sm border-l-4 border-blue-500">
                                       <div className="flex justify-between items-start mb-2">
-                                        <span className="font-medium text-gray-900 text-sm">❓ {question.content}</span>
+                                        <span className="font-medium text-gray-900 text-sm">Quiz</span>
                                         <div className="flex gap-1 ml-2">
                                           <button
                                             onClick={() => { setEditingQuestion(question); setEditingQuestionMessageId(item.id); setShowQuestionEditor(true); }}
@@ -614,7 +622,12 @@ const SMSManager: React.FC<SMSManagerProps> = ({ projectId }) => {
                                               </span>
                                               <span>{answer.content}</span>
                                             </div>
-                                            {!answer.isCorrect && answer.cpuResponse && (
+                                            {answer.shortContent && (
+                                              <div className="mt-0.5 ml-5 text-xs text-blue-600 italic">
+                                                Court : {answer.shortContent}
+                                              </div>
+                                            )}
+                                            {answer.cpuResponse && (
                                               <div className="mt-1 ml-5 text-xs text-gray-500 italic border-l-2 border-gray-300 pl-2">
                                                 CPU: {answer.cpuResponse}
                                               </div>
@@ -655,7 +668,7 @@ const SMSManager: React.FC<SMSManagerProps> = ({ projectId }) => {
                 <div className="flex gap-3">
                   <button
                     type="button"
-                    onClick={() => setMessageFormData({ ...messageFormData, fromCpu: false })}
+                    onClick={() => setMessageFormData({ ...messageFormData, fromCpu: false, isQuestion: false, answers: [] })}
                     className={`flex-1 py-2 rounded-lg border-2 text-sm font-medium transition-colors ${!messageFormData.fromCpu ? 'border-blue-500 bg-blue-50 text-blue-700' : 'border-gray-200 text-gray-500 hover:border-gray-300'}`}
                   >
                     Joueur
@@ -696,103 +709,117 @@ const SMSManager: React.FC<SMSManagerProps> = ({ projectId }) => {
                       onChange={(e) => setMessageFormData({ ...messageFormData, isQuestion: e.target.checked })}
                       className="w-4 h-4"
                     />
-                    <span className="text-sm font-medium text-gray-700">Ce message est une question quiz (sans texte)</span>
+                    <span className="text-sm font-medium text-gray-700">Ce message est une question quiz</span>
                   </label>
                 </div>
               )}
 
-              {!messageFormData.isQuestion ? (
-                <div className="mb-4">
-                  <label className="block text-sm font-medium text-gray-700 mb-2">Message *</label>
-                  <div className="border border-gray-300 rounded-lg focus-within:ring-2 focus-within:ring-blue-500">
-                    <div className="dialogue-editor-toolbar border-b border-gray-200 p-2 bg-gray-50 rounded-t-lg">
-                      <button type="button" onClick={() => messageEditor?.chain().focus().toggleBold().run()} className={`px-2 py-1 mx-1 rounded text-sm ${messageEditor?.isActive('bold') ? 'bg-blue-500 text-white' : 'bg-white'}`}>G</button>
-                      <button type="button" onClick={() => messageEditor?.chain().focus().toggleItalic().run()} className={`px-2 py-1 mx-1 rounded text-sm italic ${messageEditor?.isActive('italic') ? 'bg-blue-500 text-white' : 'bg-white'}`}>I</button>
-                      <button type="button" onClick={() => messageEditor?.chain().focus().toggleStrike().run()} className={`px-2 py-1 mx-1 rounded text-sm line-through ${messageEditor?.isActive('strike') ? 'bg-blue-500 text-white' : 'bg-white'}`}>S</button>
-                    </div>
-                    <EditorContent editor={messageEditor} className="dialogue-editor-content min-h-[100px] p-3" />
+              {/* Text editor — always shown */}
+              <div className="mb-4">
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  {messageFormData.isQuestion ? 'Question *' : 'Message *'}
+                </label>
+                <div className="border border-gray-300 rounded-lg focus-within:ring-2 focus-within:ring-blue-500">
+                  <div className="dialogue-editor-toolbar border-b border-gray-200 p-2 bg-gray-50 rounded-t-lg">
+                    <button type="button" onClick={() => messageEditor?.chain().focus().toggleBold().run()} className={`px-2 py-1 mx-1 rounded text-sm ${messageEditor?.isActive('bold') ? 'bg-blue-500 text-white' : 'bg-white'}`}>G</button>
+                    <button type="button" onClick={() => messageEditor?.chain().focus().toggleItalic().run()} className={`px-2 py-1 mx-1 rounded text-sm italic ${messageEditor?.isActive('italic') ? 'bg-blue-500 text-white' : 'bg-white'}`}>I</button>
+                    <button type="button" onClick={() => messageEditor?.chain().focus().toggleStrike().run()} className={`px-2 py-1 mx-1 rounded text-sm line-through ${messageEditor?.isActive('strike') ? 'bg-blue-500 text-white' : 'bg-white'}`}>S</button>
                   </div>
+                  <EditorContent editor={messageEditor} className="dialogue-editor-content min-h-[100px] p-3" />
                 </div>
-              ) : (
-                <>
-                  <div className="mb-4">
-                    <label className="block text-sm font-medium text-gray-700 mb-2">Question *</label>
-                    <input
-                      type="text"
-                      value={messageFormData.questionContent}
-                      onChange={(e) => setMessageFormData({ ...messageFormData, questionContent: e.target.value })}
-                      className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
-                      placeholder="Quelle est la question ?"
-                      required={messageFormData.isQuestion}
-                    />
-                  </div>
+              </div>
 
-                  <div className="mb-4">
-                    <div className="flex justify-between items-center mb-2">
-                      <label className="block text-sm font-medium text-gray-700">Réponses *</label>
-                      <button
-                        type="button"
-                        onClick={() => setMessageFormData({ ...messageFormData, answers: [...messageFormData.answers, { content: '', isCorrect: false, cpuResponse: '' }] })}
-                        className="bg-green-100 text-green-700 px-3 py-1 rounded text-sm hover:bg-green-200"
-                      >
-                        + Ajouter
-                      </button>
-                    </div>
-                    <div className="space-y-3">
-                      {messageFormData.answers.map((answer, index) => (
-                        <div key={index} className={`rounded-lg border p-3 ${answer.isCorrect ? 'border-green-300 bg-green-50' : 'border-gray-200 bg-gray-50'}`}>
-                          <div className="flex gap-2 items-start mb-2">
-                            <div className="flex items-center mt-2">
-                              <input
-                                type="checkbox"
-                                checked={answer.isCorrect}
-                                onChange={(e) => {
-                                  const newAnswers = [...messageFormData.answers];
-                                  newAnswers[index] = { ...newAnswers[index], isCorrect: e.target.checked };
-                                  setMessageFormData({ ...messageFormData, answers: newAnswers });
-                                }}
-                                className="w-5 h-5"
-                                title="Réponse correcte"
-                              />
-                            </div>
+              {/* Short content (optional, player messages only) */}
+              {!messageFormData.fromCpu && (
+                <div className="mb-4">
+                  <label className="block text-sm font-medium text-gray-700 mb-1">Version courte (optionnel)</label>
+                  <input
+                    type="text"
+                    value={messageFormData.shortContent}
+                    onChange={(e) => setMessageFormData({ ...messageFormData, shortContent: e.target.value })}
+                    className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    placeholder="Version courte du message (optionnel)..."
+                  />
+                </div>
+              )}
+
+              {/* Quiz answers */}
+              {!editingMessage && messageFormData.isQuestion && (
+                <div className="mb-4">
+                  <div className="flex justify-between items-center mb-2">
+                    <label className="block text-sm font-medium text-gray-700">Réponses *</label>
+                    <button
+                      type="button"
+                      onClick={() => setMessageFormData({ ...messageFormData, answers: [...messageFormData.answers, { content: '', shortContent: '', isCorrect: false, cpuResponse: '' }] })}
+                      className="bg-green-100 text-green-700 px-3 py-1 rounded text-sm hover:bg-green-200"
+                    >
+                      + Ajouter
+                    </button>
+                  </div>
+                  <div className="space-y-3">
+                    {messageFormData.answers.map((answer, index) => (
+                      <div key={index} className={`rounded-lg border p-3 ${answer.isCorrect ? 'border-green-300 bg-green-50' : 'border-gray-200 bg-gray-50'}`}>
+                        <div className="flex gap-2 items-start mb-2">
+                          <div className="flex items-center mt-2">
                             <input
-                              type="text"
-                              value={answer.content}
+                              type="checkbox"
+                              checked={answer.isCorrect}
                               onChange={(e) => {
                                 const newAnswers = [...messageFormData.answers];
-                                newAnswers[index] = { ...newAnswers[index], content: e.target.value };
+                                newAnswers[index] = { ...newAnswers[index], isCorrect: e.target.checked };
                                 setMessageFormData({ ...messageFormData, answers: newAnswers });
                               }}
-                              className="flex-1 border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white"
-                              placeholder={`Réponse ${index + 1}`}
-                              required={messageFormData.isQuestion}
+                              className="w-5 h-5"
+                              title="Réponse correcte"
                             />
-                            <button
-                              type="button"
-                              onClick={() => setMessageFormData({ ...messageFormData, answers: messageFormData.answers.filter((_, i) => i !== index) })}
-                              className="text-red-600 hover:text-red-700 px-2 py-2"
-                            >🗑️</button>
                           </div>
-                          {!answer.isCorrect && (
-                            <div className="ml-7">
-                              <input
-                                type="text"
-                                value={answer.cpuResponse}
-                                onChange={(e) => {
-                                  const newAnswers = [...messageFormData.answers];
-                                  newAnswers[index] = { ...newAnswers[index], cpuResponse: e.target.value };
-                                  setMessageFormData({ ...messageFormData, answers: newAnswers });
-                                }}
-                                className="w-full border border-gray-300 rounded px-3 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white"
-                                placeholder="Réponse du CPU si mauvaise réponse..."
-                              />
-                            </div>
-                          )}
+                          <input
+                            type="text"
+                            value={answer.content}
+                            onChange={(e) => {
+                              const newAnswers = [...messageFormData.answers];
+                              newAnswers[index] = { ...newAnswers[index], content: e.target.value };
+                              setMessageFormData({ ...messageFormData, answers: newAnswers });
+                            }}
+                            className="flex-1 border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white"
+                            placeholder={`Réponse ${index + 1}`}
+                            required={messageFormData.isQuestion}
+                          />
+                          <button
+                            type="button"
+                            onClick={() => setMessageFormData({ ...messageFormData, answers: messageFormData.answers.filter((_, i) => i !== index) })}
+                            className="text-red-600 hover:text-red-700 px-2 py-2"
+                          >🗑️</button>
                         </div>
-                      ))}
-                    </div>
+                        <div className="ml-7 space-y-2">
+                          <input
+                            type="text"
+                            value={answer.shortContent}
+                            onChange={(e) => {
+                              const newAnswers = [...messageFormData.answers];
+                              newAnswers[index] = { ...newAnswers[index], shortContent: e.target.value };
+                              setMessageFormData({ ...messageFormData, answers: newAnswers });
+                            }}
+                            className="w-full border border-gray-300 rounded px-3 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white"
+                            placeholder="Réponse courte (optionnel)..."
+                          />
+                          <input
+                            type="text"
+                            value={answer.cpuResponse}
+                            onChange={(e) => {
+                              const newAnswers = [...messageFormData.answers];
+                              newAnswers[index] = { ...newAnswers[index], cpuResponse: e.target.value };
+                              setMessageFormData({ ...messageFormData, answers: newAnswers });
+                            }}
+                            className="w-full border border-gray-300 rounded px-3 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white"
+                            placeholder="Réaction du CPU *"
+                            required={messageFormData.isQuestion}
+                          />
+                        </div>
+                      </div>
+                    ))}
                   </div>
-                </>
+                </div>
               )}
 
               <div className="flex gap-3">
@@ -848,6 +875,9 @@ const SMSManager: React.FC<SMSManagerProps> = ({ projectId }) => {
       {showQuestionEditor && editingQuestionMessageId && (
         <QuizQuestionEditor
           messageId={editingQuestionMessageId}
+          messageText={
+            selectedConversation?.messages?.find(m => m.id === editingQuestionMessageId)?.text || ''
+          }
           existingQuestion={editingQuestion || undefined}
           onClose={() => { setShowQuestionEditor(false); setEditingQuestionMessageId(null); setEditingQuestion(null); }}
           onSave={async () => {

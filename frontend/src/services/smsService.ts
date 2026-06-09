@@ -15,12 +15,14 @@ export interface UpdateSMSConversationRequest {
 export interface CreateSMSMessageRequest {
   fromCpu: boolean;
   text: string;
+  shortContent?: string;
   timestamp?: Date;
 }
 
 export interface UpdateSMSMessageRequest {
   fromCpu?: boolean;
   text?: string;
+  shortContent?: string;
   timestamp?: Date;
 }
 
@@ -28,6 +30,7 @@ export interface CreateSMSQuestionRequest {
   content: string;
   answers: {
     content: string;
+    shortContent?: string;
     isCorrect: boolean;
     order?: number;
     cpuResponse?: string;
@@ -38,6 +41,7 @@ export interface UpdateSMSQuestionRequest {
   content: string;
   answers: {
     content: string;
+    shortContent?: string;
     isCorrect: boolean;
     order?: number;
     cpuResponse?: string;

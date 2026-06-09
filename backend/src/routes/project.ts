@@ -344,16 +344,15 @@ router.get("/:projectId/export", authMiddleware, async (req, res) => {
 
         const formatMessage = (message: any) => ({
           fromCpu: message.fromCpu,
-          content: message.text,
+          content: message.text || (message.questions?.[0]?.content ?? ''),
           timestamp: message.timestamp,
+          ...(!message.fromCpu && message.shortContent && { 'short-content': message.shortContent }),
           ...(message.questions && message.questions.length > 0 && {
-            questions: message.questions.map((question: any) => ({
-              content: question.content,
-              answers: question.answers.map((answer: any) => ({
-                content: answer.content,
-                isCorrect: answer.isCorrect,
-                ...(answer.cpuResponse && { cpuResponse: answer.cpuResponse }),
-              }))
+            'quiz-answers': message.questions[0].answers.map((a: any) => ({
+              ...(a.shortContent && { 'short-content': a.shortContent }),
+              content: a.content,
+              isCorrect: a.isCorrect,
+              cpuReaction: a.cpuResponse || ''
             }))
           })
         });

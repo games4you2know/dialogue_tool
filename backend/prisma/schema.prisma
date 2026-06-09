@@ -248,15 +248,16 @@ model SMSParticipant {
 }
 
 model SMSMessage {
-  id             String   @id @default(uuid())
-  conversationId String
-  characterId    String?
-  fromCpu        Boolean  @default(false)
-  text           String
-  timestamp      DateTime @default(now())
-  isRead         Boolean  @default(false)
-  messageType    String   @default("text") // 'text' | 'image'
-  attachmentUrl  String?
+  id              String   @id @default(uuid())
+  conversationId  String
+  characterId     String?
+  fromCpu         Boolean  @default(false)
+  text         String
+  shortContent String?
+  timestamp       DateTime @default(now())
+  isRead          Boolean  @default(false)
+  messageType     String   @default("text") // 'text' | 'image'
+  attachmentUrl   String?
 
   // Relations
   conversation SMSConversation @relation(fields: [conversationId], references: [id], onDelete: Cascade)
@@ -282,12 +283,13 @@ model SMSQuestion {
 }
 
 model SMSAnswer {
-  id          String  @id @default(uuid())
-  questionId  String
-  content     String
-  isCorrect   Boolean @default(false)
-  order       Int     @default(0)
-  cpuResponse String? // Response from CPU when this wrong answer is selected
+  id           String  @id @default(uuid())
+  questionId   String
+  content      String
+  shortContent String?
+  isCorrect    Boolean @default(false)
+  order        Int     @default(0)
+  cpuResponse  String?
 
   // Relations
   question SMSQuestion @relation(fields: [questionId], references: [id], onDelete: Cascade)

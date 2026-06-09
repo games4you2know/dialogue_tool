@@ -4,6 +4,7 @@ import { smsService, type CreateSMSQuestionRequest } from '../services/smsServic
 
 interface QuizQuestionEditorProps {
   messageId: string;
+  messageText: string;
   existingQuestion?: SMSQuestion;
   onClose: () => void;
   onSave: () => void;
@@ -11,6 +12,7 @@ interface QuizQuestionEditorProps {
 
 interface AnswerFormData {
   content: string;
+  shortContent: string;
   isCorrect: boolean;
   order: number;
   cpuResponse: string;
@@ -18,27 +20,28 @@ interface AnswerFormData {
 
 const QuizQuestionEditor: React.FC<QuizQuestionEditorProps> = ({
   messageId,
+  messageText,
   existingQuestion,
   onClose,
   onSave,
 }) => {
-  const [questionContent, setQuestionContent] = useState(existingQuestion?.content || '');
   const [answers, setAnswers] = useState<AnswerFormData[]>(
     existingQuestion?.answers.map(a => ({
       content: a.content,
+      shortContent: a.shortContent || '',
       isCorrect: a.isCorrect,
       order: a.order,
       cpuResponse: a.cpuResponse || ''
     })) || [
-      { content: '', isCorrect: true, order: 0, cpuResponse: '' },
-      { content: '', isCorrect: false, order: 1, cpuResponse: '' },
+      { content: '', shortContent: '', isCorrect: true, order: 0, cpuResponse: '' },
+      { content: '', shortContent: '', isCorrect: false, order: 1, cpuResponse: '' },
     ]
   );
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
   const addAnswer = () => {
-    setAnswers([...answers, { content: '', isCorrect: false, order: answers.length, cpuResponse: '' }]);
+    setAnswers([...answers, { content: '', shortContent: '', isCorrect: false, order: answers.length, cpuResponse: '' }]);
   };
 
   const removeAnswer = (index: number) => {
@@ -58,10 +61,6 @@ const QuizQuestionEditor: React.FC<QuizQuestionEditorProps> = ({
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
-    if (!questionContent.trim()) {
-      setError('La question est requise');
-      return;
-    }
     if (answers.some(a => !a.content.trim())) {
       setError('Toutes les réponses doivent avoir un contenu');
       return;
@@ -76,12 +75,13 @@ const QuizQuestionEditor: React.FC<QuizQuestionEditorProps> = ({
       setError(null);
 
       const questionData: CreateSMSQuestionRequest = {
-        content: questionContent.trim(),
+        content: messageText,
         answers: answers.map(a => ({
           content: a.content.trim(),
+          shortContent: a.shortContent.trim() || undefined,
           isCorrect: a.isCorrect,
           order: a.order,
-          cpuResponse: (!a.isCorrect && a.cpuResponse.trim()) ? a.cpuResponse.trim() : undefined
+          cpuResponse: a.cpuResponse.trim() || undefined
         }))
       };
 
@@ -106,8 +106,15 @@ const QuizQuestionEditor: React.FC<QuizQuestionEditorProps> = ({
       <div className="bg-white rounded-lg w-full max-w-2xl max-h-[90vh] overflow-y-auto">
         <div className="p-6">
           <h3 className="text-xl font-bold mb-4">
-            {existingQuestion ? 'Modifier la question' : 'Ajouter une question'}
+            {existingQuestion ? 'Modifier les réponses' : 'Ajouter des réponses quiz'}
           </h3>
+
+          {messageText && (
+            <div className="mb-4 p-3 bg-blue-50 border border-blue-200 rounded-lg text-sm text-blue-800">
+              <span className="font-medium">Question :</span>{' '}
+              <span dangerouslySetInnerHTML={{ __html: messageText }} />
+            </div>
+          )}
 
           {error && (
             <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded mb-4">
@@ -116,18 +123,6 @@ const QuizQuestionEditor: React.FC<QuizQuestionEditorProps> = ({
           )}
 
           <form onSubmit={handleSubmit}>
-            <div className="mb-6">
-              <label className="block text-sm font-medium text-gray-700 mb-2">Question *</label>
-              <input
-                type="text"
-                value={questionContent}
-                onChange={(e) => setQuestionContent(e.target.value)}
-                className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
-                placeholder="Quelle est la question ?"
-                required
-              />
-            </div>
-
             <div className="mb-6">
               <div className="flex justify-between items-center mb-3">
                 <label className="block text-sm font-medium text-gray-700">Réponses (minimum 2)</label>
@@ -173,22 +168,28 @@ const QuizQuestionEditor: React.FC<QuizQuestionEditorProps> = ({
                         </button>
                       )}
                     </div>
-                    {!answer.isCorrect && (
-                      <div className="ml-7">
-                        <input
-                          type="text"
-                          value={answer.cpuResponse}
-                          onChange={(e) => updateAnswer(index, 'cpuResponse', e.target.value)}
-                          className="w-full border border-gray-300 rounded px-3 py-1.5 text-sm bg-white focus:outline-none focus:ring-2 focus:ring-blue-500"
-                          placeholder="Réponse du CPU si cette mauvaise réponse est choisie..."
-                        />
-                      </div>
-                    )}
+                    <div className="ml-7 space-y-2">
+                      <input
+                        type="text"
+                        value={answer.shortContent}
+                        onChange={(e) => updateAnswer(index, 'shortContent', e.target.value)}
+                        className="w-full border border-gray-300 rounded px-3 py-1.5 text-sm bg-white focus:outline-none focus:ring-2 focus:ring-blue-500"
+                        placeholder="Réponse courte (optionnel)..."
+                      />
+                      <input
+                        type="text"
+                        value={answer.cpuResponse}
+                        onChange={(e) => updateAnswer(index, 'cpuResponse', e.target.value)}
+                        className="w-full border border-gray-300 rounded px-3 py-1.5 text-sm bg-white focus:outline-none focus:ring-2 focus:ring-blue-500"
+                        placeholder="Réaction du CPU *"
+                        required
+                      />
+                    </div>
                   </div>
                 ))}
               </div>
               <p className="text-xs text-gray-500 mt-2">
-                Cochez pour indiquer les bonnes réponses. Renseignez la contre-réponse CPU pour les mauvaises.
+                Cochez pour indiquer les bonnes réponses. La réaction CPU est obligatoire pour chaque réponse.
               </p>
             </div>
 

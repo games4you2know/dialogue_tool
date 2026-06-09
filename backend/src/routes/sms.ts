@@ -126,7 +126,7 @@ router.delete("/:conversationId", async (req, res) => {
 router.post("/:conversationId/messages", async (req, res) => {
   try {
     const { conversationId } = req.params;
-    const { fromCpu, text, timestamp } = req.body;
+    const { fromCpu, text, shortContent, timestamp } = req.body;
     
     if (text === undefined || text === null) {
       return res.status(400).json({ error: 'Message text is required' });
@@ -137,6 +137,7 @@ router.post("/:conversationId/messages", async (req, res) => {
         conversationId,
         fromCpu: fromCpu === true,
         text: text,
+        shortContent: shortContent || null,
         timestamp: timestamp ? new Date(timestamp) : new Date()
       },
       include: {
@@ -159,14 +160,15 @@ router.post("/:conversationId/messages", async (req, res) => {
 router.put("/messages/:messageId", async (req, res) => {
   try {
     const { messageId } = req.params;
-    const { fromCpu, text, timestamp } = req.body;
+    const { fromCpu, text, shortContent, timestamp } = req.body;
 
     const message = await prisma.sMSMessage.update({
       where: { id: messageId },
       data: {
         ...(text !== undefined && { text }),
         ...(fromCpu !== undefined && { fromCpu: fromCpu === true }),
-        ...(timestamp && { timestamp: new Date(timestamp) })
+        ...(timestamp && { timestamp: new Date(timestamp) }),
+        ...(shortContent !== undefined && { shortContent: shortContent || null })
       },
       include: {
         character: true,
@@ -225,6 +227,7 @@ router.post("/messages/:messageId/questions", async (req, res) => {
         answers: {
           create: answers.map((answer: any, index: number) => ({
             content: answer.content,
+            shortContent: answer.shortContent || null,
             isCorrect: answer.isCorrect || false,
             order: answer.order !== undefined ? answer.order : index,
             cpuResponse: answer.cpuResponse || null
@@ -266,6 +269,7 @@ router.put("/questions/:questionId", async (req, res) => {
         answers: {
           create: answers.map((answer: any, index: number) => ({
             content: answer.content,
+            shortContent: answer.shortContent || null,
             isCorrect: answer.isCorrect || false,
             order: answer.order !== undefined ? answer.order : index,
             cpuResponse: answer.cpuResponse || null
