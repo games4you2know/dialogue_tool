@@ -348,7 +348,7 @@ router.get("/:projectId/export", authMiddleware, async (req, res) => {
           timestamp: message.timestamp,
           ...(!message.fromCpu && message.shortContent && { 'short-content': message.shortContent }),
           ...(message.questions && message.questions.length > 0 && {
-            'quiz-answers': message.questions[0].answers.map((a: any) => ({
+            'answers': message.questions[0].answers.map((a: any) => ({
               ...(a.shortContent && { 'short-content': a.shortContent }),
               content: a.content,
               isCorrect: a.isCorrect,
