@@ -1,124 +1,95 @@
 import React from 'react';
+import { useNavigate } from 'react-router-dom';
 
 const ExportPage: React.FC = () => {
+  const navigate = useNavigate();
+
+  const files = [
+    {
+      name: 'Narration.json',
+      color: 'blue',
+      iconPath: 'M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z',
+      description: 'Tous les dialogues du projet avec leurs lignes, le staging des personnages (humeur, position, caméra) et les tags de background.',
+      keys: ['dialogues', 'tag', 'backgroundTag', 'lines', 'characterTag', 'mainCharacterStaging', 'secondaryCharacterStaging', 'triggerCameraShake', 'memory'],
+    },
+    {
+      name: 'Journal.json',
+      color: 'amber',
+      iconPath: 'M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253',
+      description: 'Toutes les entrées du journal du joueur avec leur identifiant, contexte, émotion, contenu et informations complémentaires.',
+      keys: ['ID', 'Context', 'Emotion', 'Content', 'Info'],
+    },
+    {
+      name: 'PhoneData.json',
+      color: 'green',
+      iconPath: 'M12 18h.01M8 21l4-4 4 4M3 5a2 2 0 012-2h14a2 2 0 012 2v14a2 2 0 01-2 2H5a2 2 0 01-2-2V5z',
+      description: 'Toutes les données de l\'interface téléphone : conversations SMS (avec streams et quiz), appels, transactions bancaires et posts de réseaux sociaux.',
+      keys: ['smsConversations', 'calls', 'bankTransactions', 'socialPosts'],
+    },
+  ];
+
+  const colorMap: Record<string, { bg: string; icon: string; badge: string }> = {
+    blue:  { bg: 'border-blue-200 bg-blue-50',  icon: 'text-blue-600',  badge: 'bg-blue-100 text-blue-700' },
+    amber: { bg: 'border-amber-200 bg-amber-50', icon: 'text-amber-600', badge: 'bg-amber-100 text-amber-700' },
+    green: { bg: 'border-green-200 bg-green-50', icon: 'text-green-600', badge: 'bg-green-100 text-green-700' },
+  };
+
   return (
     <div className="max-w-4xl mx-auto">
-      {/* Header */}
       <div className="mb-8">
         <h1 className="text-3xl font-bold text-gray-900 mb-2">Export Unity</h1>
         <p className="text-gray-600">
-          Exportez vos dialogues et conversations au format JSON compatible avec Unity
+          L'export génère 3 fichiers JSON distincts, prêts à être intégrés dans Unity.
         </p>
       </div>
 
-      {/* Export Options */}
-      <div className="grid md:grid-cols-2 gap-6 mb-8">
-        <div className="bg-white rounded-lg shadow-md border border-gray-200 p-6">
-          <div className="flex items-center mb-4">
-            <svg className="w-8 h-8 text-blue-600 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" />
-            </svg>
-            <h3 className="text-xl font-semibold text-gray-900">Export Dialogues</h3>
-          </div>
-          <p className="text-gray-600 mb-4">
-            Exportez tous les dialogues d'un projet au format JSON avec la structure des personnages, 
-            choix et embranchements.
-          </p>
-          <button className="w-full bg-blue-600 hover:bg-blue-700 text-white py-2 px-4 rounded-lg font-medium transition-colors">
-            Exporter les Dialogues
-          </button>
-        </div>
-
-        <div className="bg-white rounded-lg shadow-md border border-gray-200 p-6">
-          <div className="flex items-center mb-4">
-            <svg className="w-8 h-8 text-green-600 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 18h.01M8 21l4-4 4 4M3 5a2 2 0 012-2h14a2 2 0 012 2v14a2 2 0 01-2 2H5a2 2 0 01-2-2V5z" />
-            </svg>
-            <h3 className="text-xl font-semibold text-gray-900">Export SMS</h3>
-          </div>
-          <p className="text-gray-600 mb-4">
-            Exportez toutes les conversations SMS avec horodatage, participants et 
-            métadonnées pour l'intégration Unity.
-          </p>
-          <button className="w-full bg-green-600 hover:bg-green-700 text-white py-2 px-4 rounded-lg font-medium transition-colors">
-            Exporter les SMS
-          </button>
-        </div>
+      <div className="grid gap-6 mb-8">
+        {files.map((file) => {
+          const colors = colorMap[file.color];
+          return (
+            <div
+              key={file.name}
+              className={`rounded-xl border-2 ${colors.bg} p-6`}
+            >
+              <div className="flex items-start gap-4">
+                <div className={`flex-shrink-0 p-2 rounded-lg bg-white shadow-sm`}>
+                  <svg className={`w-7 h-7 ${colors.icon}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d={file.iconPath} />
+                  </svg>
+                </div>
+                <div className="flex-1 min-w-0">
+                  <h3 className="text-lg font-bold text-gray-900 mb-1">{file.name}</h3>
+                  <p className="text-gray-600 text-sm mb-3">{file.description}</p>
+                  <div className="flex flex-wrap gap-2">
+                    {file.keys.map((key) => (
+                      <span key={key} className={`text-xs font-mono font-medium px-2 py-0.5 rounded ${colors.badge}`}>
+                        {key}
+                      </span>
+                    ))}
+                  </div>
+                </div>
+              </div>
+            </div>
+          );
+        })}
       </div>
 
-      {/* Export Settings */}
-      <div className="bg-white rounded-lg shadow-md border border-gray-200 p-6 mb-8">
-        <h3 className="text-lg font-semibold text-gray-900 mb-4">Paramètres d'Export</h3>
-        
-        <div className="space-y-4">
-          <div>
-            <label className="flex items-center">
-              <input type="checkbox" className="mr-2" defaultChecked />
-              <span className="text-gray-700">Inclure les métadonnées du projet</span>
-            </label>
-          </div>
-          
-          <div>
-            <label className="flex items-center">
-              <input type="checkbox" className="mr-2" defaultChecked />
-              <span className="text-gray-700">Minifier le JSON</span>
-            </label>
-          </div>
-          
-          <div>
-            <label className="flex items-center">
-              <input type="checkbox" className="mr-2" />
-              <span className="text-gray-700">Inclure les timestamps de création</span>
-            </label>
-          </div>
-          
-          <div>
-            <label className="flex items-center">
-              <input type="checkbox" className="mr-2" />
-              <span className="text-gray-700">Exporter uniquement les éléments validés</span>
-            </label>
-          </div>
+      <div className="bg-white rounded-xl border border-gray-200 shadow-sm p-6">
+        <div className="flex items-center gap-3 mb-3">
+          <svg className="w-5 h-5 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+          </svg>
+          <h3 className="font-semibold text-gray-800">Comment exporter ?</h3>
         </div>
-      </div>
-
-      {/* Export Preview */}
-      <div className="bg-white rounded-lg shadow-md border border-gray-200 p-6">
-        <h3 className="text-lg font-semibold text-gray-900 mb-4">Aperçu de la Structure JSON</h3>
-        
-        <div className="bg-gray-100 rounded-lg p-4 overflow-x-auto">
-          <pre className="text-sm text-gray-800">
-{`{
-  "metadata": {
-    "projectName": "Mon Projet",
-    "exportDate": "2024-10-26T10:30:00Z",
-    "version": "1.0.0"
-  },
-  "characters": [
-    {
-      "id": "char_001",
-      "name": "Héros",
-      "color": "#3B82F6",
-      "avatar": "hero_avatar.png"
-    }
-  ],
-  "dialogues": [
-    {
-      "id": "dialogue_001",
-      "name": "Dialogue d'introduction",
-      "lines": [
-        {
-          "id": "line_001",
-          "characterId": "char_001",
-          "text": "Bonjour !",
-          "order": 1,
-          "choices": []
-        }
-      ]
-    }
-  ]
-}`}
-          </pre>
-        </div>
+        <p className="text-gray-600 text-sm mb-4">
+          L'export se déclenche depuis la page d'un projet. Ouvrez votre projet et cliquez sur le bouton <strong>Exporter JSON</strong> — les 3 fichiers seront téléchargés automatiquement.
+        </p>
+        <button
+          onClick={() => navigate('/projects')}
+          className="bg-gray-900 hover:bg-gray-700 text-white py-2 px-5 rounded-lg font-medium text-sm transition-colors"
+        >
+          Aller aux projets
+        </button>
       </div>
     </div>
   );

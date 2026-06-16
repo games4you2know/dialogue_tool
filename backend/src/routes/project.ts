@@ -312,109 +312,112 @@ router.get("/:projectId/export", authMiddleware, async (req, res) => {
     const moodTagMap = new Map(moods.map(m => [m.id, m.tag]));
     
     const exportJson = {
-      dialogues: (project as any).dialogues.map((dialogue: any) => ({
-        tag: dialogue.tag,
-        backgroundTag: dialogue.background?.tag || null,
-        doFadeAtEnd: dialogue.doFadeAtEnd,
-        lines: dialogue.lines.map((line: any) => {
-          const secondaryCharacterTag = line.secondaryCharacterId ? characterTagMap.get(line.secondaryCharacterId) || null : null;
-          const mainMoodTag = line.mainCharacterMoodId ? moodTagMap.get(line.mainCharacterMoodId) || null : null;
-          const secondaryMoodTag = line.secondaryCharacterMoodId ? moodTagMap.get(line.secondaryCharacterMoodId) || null : null;
+      narration: {
+        dialogues: (project as any).dialogues.map((dialogue: any) => ({
+          tag: dialogue.tag,
+          backgroundTag: dialogue.background?.tag || null,
+          doFadeAtEnd: dialogue.doFadeAtEnd,
+          lines: dialogue.lines.map((line: any) => {
+            const secondaryCharacterTag = line.secondaryCharacterId ? characterTagMap.get(line.secondaryCharacterId) || null : null;
+            const mainMoodTag = line.mainCharacterMoodId ? moodTagMap.get(line.mainCharacterMoodId) || null : null;
+            const secondaryMoodTag = line.secondaryCharacterMoodId ? moodTagMap.get(line.secondaryCharacterMoodId) || null : null;
 
-          return {
-            order: line.order,
-            characterTag: line.character?.tag || null,
-            text: line.text,
-            secondaryCharacterTag,
-            mainCharacterStaging: {
-              characterMoodTag: mainMoodTag,
-              characterPosition: line.mainCharacterPosition
-            },
-            secondaryCharacterStaging: secondaryCharacterTag ? {
-              characterMoodTag: secondaryMoodTag,
-              characterPosition: line.secondaryCharacterPosition
-            } : null,
-            triggerCameraShake: line.triggerCameraShake,
-            memory: line.memory
-          };
-        }),
-      })),
-      smsConversations: (project as any).smsConversations.map((conversation: any) => {
-        const characterTag: string = conversation.npcCharacter?.tag || 'UNKNOWN';
-
-        const formatMessage = (message: any) => ({
-          fromCpu: message.fromCpu,
-          content: message.text || (message.questions?.[0]?.content ?? ''),
-          timestamp: message.timestamp,
-          ...(!message.fromCpu && message.shortContent && { 'short-content': message.shortContent }),
-          ...(message.questions && message.questions.length > 0 && {
-            'answers': message.questions[0].answers.map((a: any) => ({
-              ...(a.shortContent && { 'short-content': a.shortContent }),
-              content: a.content,
-              isCorrect: a.isCorrect,
-              cpuReaction: a.cpuResponse || ''
-            }))
-          })
-        });
-
-        const endpoints: any[] = conversation.streamEndpoints || [];
-
-        // Merge messages and endpoints sorted by timestamp, then split into streams
-        const taggedMessages = conversation.messages.map((m: any) => ({ ...m, _type: 'message' }));
-        const taggedEndpoints = endpoints.map((e: any) => ({ ...e, _type: 'endpoint' }));
-        const items = [...taggedMessages, ...taggedEndpoints].sort(
-          (a: any, b: any) => new Date(a.timestamp).getTime() - new Date(b.timestamp).getTime()
-        );
-
-        const rawStreams: any[][] = [];
-        let currentChunk: any[] | null = null;
-
-        for (const item of items) {
-          if (item._type === 'endpoint') {
-            currentChunk = [];
-            rawStreams.push(currentChunk);
-          } else {
-            if (!currentChunk) {
-              currentChunk = [];
-              rawStreams.push(currentChunk);
-            }
-            currentChunk.push(formatMessage(item));
-          }
-        }
-
-        const messageStreams = rawStreams.map((chunk, idx) => ({
-          streamId: `${characterTag}_${String(idx + 1).padStart(3, '0')}`,
-          messages: chunk
-        }));
-
-        return {
-          characterId: characterTag,
-          messageStreams
-        };
-      }),
-      calls: (project as any).calls.map((call: any) => ({
-        contactTag: call.character?.tag || null,
-        callDate: call.callDate,
-        duration: call.duration,
-        status: call.status
-      })),
-      bankTransactions: (project as any).bankTransactions.map((tx: any) => ({
-        type: tx.type,
-        name: tx.name,
-        paymentType: tx.paymentType,
-        amount: tx.amount
-      })),
-      socialPosts: (project as any).socialPosts.map((post: any) => ({
-        content: post.content,
-        reportReason: post.reportReason
-      })),
+            return {
+              order: line.order,
+              characterTag: line.character?.tag || null,
+              text: line.text,
+              secondaryCharacterTag,
+              mainCharacterStaging: {
+                characterMoodTag: mainMoodTag,
+                characterPosition: line.mainCharacterPosition
+              },
+              secondaryCharacterStaging: secondaryCharacterTag ? {
+                characterMoodTag: secondaryMoodTag,
+                characterPosition: line.secondaryCharacterPosition
+              } : null,
+              triggerCameraShake: line.triggerCameraShake,
+              memory: line.memory
+            };
+          }),
+        }))
+      },
       journal: (project as any).journalEntries.map((entry: any) => ({
         ID: entry.entryId,
         Context: entry.context,
         Emotion: entry.emotion,
         Content: entry.content,
         Info: entry.info,
-      }))
+      })),
+      phoneData: {
+        smsConversations: (project as any).smsConversations.map((conversation: any) => {
+          const characterTag: string = conversation.npcCharacter?.tag || 'UNKNOWN';
+
+          const formatMessage = (message: any) => ({
+            fromCpu: message.fromCpu,
+            content: message.text || (message.questions?.[0]?.content ?? ''),
+            timestamp: message.timestamp,
+            ...(!message.fromCpu && message.shortContent && { 'short-content': message.shortContent }),
+            ...(message.questions && message.questions.length > 0 && {
+              'answers': message.questions[0].answers.map((a: any) => ({
+                ...(a.shortContent && { 'short-content': a.shortContent }),
+                content: a.content,
+                isCorrect: a.isCorrect,
+                cpuReaction: a.cpuResponse || ''
+              }))
+            })
+          });
+
+          const endpoints: any[] = conversation.streamEndpoints || [];
+
+          const taggedMessages = conversation.messages.map((m: any) => ({ ...m, _type: 'message' }));
+          const taggedEndpoints = endpoints.map((e: any) => ({ ...e, _type: 'endpoint' }));
+          const items = [...taggedMessages, ...taggedEndpoints].sort(
+            (a: any, b: any) => new Date(a.timestamp).getTime() - new Date(b.timestamp).getTime()
+          );
+
+          const rawStreams: any[][] = [];
+          let currentChunk: any[] | null = null;
+
+          for (const item of items) {
+            if (item._type === 'endpoint') {
+              currentChunk = [];
+              rawStreams.push(currentChunk);
+            } else {
+              if (!currentChunk) {
+                currentChunk = [];
+                rawStreams.push(currentChunk);
+              }
+              currentChunk.push(formatMessage(item));
+            }
+          }
+
+          const messageStreams = rawStreams.map((chunk, idx) => ({
+            streamId: `${characterTag}_${String(idx + 1).padStart(3, '0')}`,
+            messages: chunk
+          }));
+
+          return {
+            characterId: characterTag,
+            messageStreams
+          };
+        }),
+        calls: (project as any).calls.map((call: any) => ({
+          contactTag: call.character?.tag || null,
+          callDate: call.callDate,
+          duration: call.duration,
+          status: call.status
+        })),
+        bankTransactions: (project as any).bankTransactions.map((tx: any) => ({
+          type: tx.type,
+          name: tx.name,
+          paymentType: tx.paymentType,
+          amount: tx.amount
+        })),
+        socialPosts: (project as any).socialPosts.map((post: any) => ({
+          content: post.content,
+          reportReason: post.reportReason
+        }))
+      }
     };
     
     res.setHeader("Content-Disposition", `attachment; filename="${project.name}.json"`);
