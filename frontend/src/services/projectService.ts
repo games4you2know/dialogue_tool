@@ -131,7 +131,7 @@ export const projectService = {
     }
   },
 
-  // Exporter un projet en JSON
+  // Exporter un projet en 3 fichiers JSON distincts
   async exportProject(id: string): Promise<void> {
     try {
       const response = await fetch(`${API_BASE_URL}/projects/${id}/export`, {
@@ -151,18 +151,24 @@ export const projectService = {
         throw new Error(errorMessage);
       }
       
-      const jsonData = await response.json();
-      const jsonString = JSON.stringify(jsonData, null, 2);
-      const blob = new Blob([jsonString], { type: 'application/json' });
-      const url = window.URL.createObjectURL(blob);
-      const a = document.createElement('a');
-      a.style.display = 'none';
-      a.href = url;
-      a.download = `project-${id}.json`;
-      document.body.appendChild(a);
-      a.click();
-      window.URL.revokeObjectURL(url);
-      document.body.removeChild(a);
+      const { narration, journal, phoneData } = await response.json();
+
+      const triggerDownload = (data: unknown, filename: string) => {
+        const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
+        const url = window.URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.style.display = 'none';
+        a.href = url;
+        a.download = filename;
+        document.body.appendChild(a);
+        a.click();
+        window.URL.revokeObjectURL(url);
+        document.body.removeChild(a);
+      };
+
+      triggerDownload(narration, 'Narration.json');
+      triggerDownload(journal, 'Journal.json');
+      triggerDownload(phoneData, 'PhoneData.json');
     } catch (error) {
       console.error('Error exporting project:', error);
       throw error;
