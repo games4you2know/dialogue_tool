@@ -14,7 +14,10 @@ export const useDialogueLineEditor = (
 
   const editor = useEditor({
     extensions: [
-      StarterKit,
+      StarterKit.configure({
+        codeBlock: false,
+        code: false,
+      }),
       Placeholder.configure({
         placeholder: 'Écrivez le texte du dialogue...',
       }),

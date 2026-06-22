@@ -310,6 +310,15 @@ router.get("/:projectId/export", authMiddleware, async (req, res) => {
 
     const characterTagMap = new Map(characters.map(c => [c.id, c.tag]));
     const moodTagMap = new Map(moods.map(m => [m.id, m.tag]));
+
+    const stripCodeTags = (html: string): string => {
+      if (!html) return html;
+      return html
+        .replace(/<pre[^>]*>/gi, '')
+        .replace(/<\/pre>/gi, '')
+        .replace(/<code[^>]*>/gi, '')
+        .replace(/<\/code>/gi, '');
+    };
     
     const exportJson = {
       narration: {
@@ -325,7 +334,7 @@ router.get("/:projectId/export", authMiddleware, async (req, res) => {
             return {
               order: line.order,
               characterTag: line.character?.tag || null,
-              text: line.text,
+              text: stripCodeTags(line.text),
               secondaryCharacterTag,
               mainCharacterStaging: {
                 characterMoodTag: mainMoodTag,
