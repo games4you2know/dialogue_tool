@@ -331,15 +331,17 @@ router.get("/:projectId/export", authMiddleware, async (req, res) => {
             const mainMoodTag = line.mainCharacterMoodId ? moodTagMap.get(line.mainCharacterMoodId) || null : null;
             const secondaryMoodTag = line.secondaryCharacterMoodId ? moodTagMap.get(line.secondaryCharacterMoodId) || null : null;
 
+            const mainCharacterTag = line.character?.tag || null;
+
             return {
               order: line.order,
-              characterTag: line.character?.tag || null,
+              characterTag: mainCharacterTag,
               text: stripCodeTags(line.text),
               secondaryCharacterTag,
-              mainCharacterStaging: {
+              mainCharacterStaging: mainCharacterTag ? {
                 characterMoodTag: mainMoodTag,
                 characterPosition: line.mainCharacterPosition
-              },
+              } : null,
               secondaryCharacterStaging: secondaryCharacterTag ? {
                 characterMoodTag: secondaryMoodTag,
                 characterPosition: line.secondaryCharacterPosition
