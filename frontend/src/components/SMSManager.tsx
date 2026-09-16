@@ -812,8 +812,7 @@ const SMSManager: React.FC<SMSManagerProps> = ({ projectId }) => {
                               setMessageFormData({ ...messageFormData, answers: newAnswers });
                             }}
                             className="w-full border border-gray-300 rounded px-3 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white"
-                            placeholder="Réaction du CPU *"
-                            required={messageFormData.isQuestion}
+                            placeholder="Réaction du CPU (optionnel)..."
                           />
                         </div>
                       </div>

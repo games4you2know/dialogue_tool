@@ -181,15 +181,14 @@ const QuizQuestionEditor: React.FC<QuizQuestionEditorProps> = ({
                         value={answer.cpuResponse}
                         onChange={(e) => updateAnswer(index, 'cpuResponse', e.target.value)}
                         className="w-full border border-gray-300 rounded px-3 py-1.5 text-sm bg-white focus:outline-none focus:ring-2 focus:ring-blue-500"
-                        placeholder="Réaction du CPU *"
-                        required
+                        placeholder="Réaction du CPU (optionnel)..."
                       />
                     </div>
                   </div>
                 ))}
               </div>
               <p className="text-xs text-gray-500 mt-2">
-                Cochez pour indiquer les bonnes réponses. La réaction CPU est obligatoire pour chaque réponse.
+                Cochez pour indiquer les bonnes réponses. La réaction CPU est optionnelle.
               </p>
             </div>
 
