@@ -1,7 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { useEditor, EditorContent } from '@tiptap/react';
-import StarterKit from '@tiptap/starter-kit';
 import Placeholder from '@tiptap/extension-placeholder';
+import { stripCodeTags } from '../utils/html';
+import { richTextEditorProps, richTextStarterKit } from '../utils/tiptap';
 import DatePicker from 'react-datepicker';
 import { registerLocale } from 'react-datepicker';
 import { fr } from 'date-fns/locale/fr';
@@ -78,12 +79,13 @@ const SMSManager: React.FC<SMSManagerProps> = ({ projectId }) => {
 
   const messageEditor = useEditor({
     extensions: [
-      StarterKit,
+      richTextStarterKit,
       Placeholder.configure({ placeholder: 'Tapez votre message...' }),
     ],
+    editorProps: richTextEditorProps,
     content: '',
     onUpdate: ({ editor }) => {
-      const html = editor.getHTML();
+      const html = stripCodeTags(editor.getHTML());
       setMessageFormData(prev => ({ ...prev, text: html }));
     },
   });

@@ -1,7 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { useEditor, EditorContent } from '@tiptap/react';
-import StarterKit from '@tiptap/starter-kit';
 import Placeholder from '@tiptap/extension-placeholder';
+import { stripCodeTags } from '../utils/html';
+import { richTextEditorProps, richTextStarterKit } from '../utils/tiptap';
 import type { Dialogue, Character, Background } from '../types/index';
 import { dialogueService, type CreateDialogueRequest, type UpdateDialogueRequest } from '../services/dialogueService';
 import { characterService } from '../services/characterService';
@@ -47,14 +48,15 @@ const DialogueManager: React.FC<DialogueManagerProps> = ({ projectId, onEditDial
 
   const descriptionEditor = useEditor({
     extensions: [
-      StarterKit,
+      richTextStarterKit,
       Placeholder.configure({
         placeholder: 'Description du dialogue...',
       }),
     ],
+    editorProps: richTextEditorProps,
     content: '',
     onUpdate: ({ editor }) => {
-      const html = editor.getHTML();
+      const html = stripCodeTags(editor.getHTML());
       setFormData(prev => ({ ...prev, description: html }));
     },
   });

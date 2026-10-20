@@ -1,4 +1,5 @@
 import { Router } from "express";
+import { stripCodeTags } from "../utils/stripCodeTags.js";
 import { PrismaClient } from "@prisma/client";
 import { authMiddleware } from "../middleware/auth.js";
 
@@ -311,15 +312,6 @@ router.get("/:projectId/export", authMiddleware, async (req, res) => {
     const characterTagMap = new Map(characters.map(c => [c.id, c.tag]));
     const moodTagMap = new Map(moods.map(m => [m.id, m.tag]));
 
-    const stripCodeTags = (html: string): string => {
-      if (!html) return html;
-      return html
-        .replace(/<pre[^>]*>/gi, '')
-        .replace(/<\/pre>/gi, '')
-        .replace(/<code[^>]*>/gi, '')
-        .replace(/<\/code>/gi, '');
-    };
-    
     const exportJson = {
       narration: {
         dialogues: (project as any).dialogues.map((dialogue: any) => ({
@@ -354,10 +346,10 @@ router.get("/:projectId/export", authMiddleware, async (req, res) => {
       },
       journal: (project as any).journalEntries.map((entry: any) => ({
         ID: entry.entryId,
-        Context: entry.context,
+        Context: stripCodeTags(entry.context),
         Emotion: entry.emotion,
-        Content: entry.content,
-        Info: entry.info,
+        Content: stripCodeTags(entry.content),
+        Info: stripCodeTags(entry.info),
       })),
       phoneData: {
         smsConversations: (project as any).smsConversations.map((conversation: any) => {
@@ -365,13 +357,13 @@ router.get("/:projectId/export", authMiddleware, async (req, res) => {
 
           const formatMessage = (message: any) => ({
             fromCpu: message.fromCpu,
-            content: message.text || (message.questions?.[0]?.content ?? ''),
+            content: stripCodeTags(message.text || (message.questions?.[0]?.content ?? '')),
             timestamp: message.timestamp,
             ...(!message.fromCpu && message.shortContent && { 'short-content': message.shortContent }),
             ...(message.questions && message.questions.length > 0 && {
               'answers': message.questions[0].answers.map((a: any) => ({
                 ...(a.shortContent && { 'short-content': a.shortContent }),
-                content: a.content,
+                content: stripCodeTags(a.content),
                 isCorrect: a.isCorrect,
                 cpuReaction: a.cpuResponse || ''
               }))
@@ -425,7 +417,7 @@ router.get("/:projectId/export", authMiddleware, async (req, res) => {
           amount: tx.amount
         })),
         socialPosts: (project as any).socialPosts.map((post: any) => ({
-          content: post.content,
+          content: stripCodeTags(post.content),
           reportReason: post.reportReason
         }))
       }

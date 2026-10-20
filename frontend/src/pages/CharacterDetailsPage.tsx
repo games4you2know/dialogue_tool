@@ -1,8 +1,9 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useEditor, EditorContent } from '@tiptap/react';
-import StarterKit from '@tiptap/starter-kit';
 import Placeholder from '@tiptap/extension-placeholder';
+import { stripCodeTags } from '../utils/html';
+import { richTextEditorProps, richTextStarterKit } from '../utils/tiptap';
 import type { Character } from '../types/index';
 import { characterService, type UpdateCharacterRequest } from '../services/characterService';
 import '../styles/dialogueEditor.css';
@@ -24,15 +25,16 @@ const CharacterDetailsPage: React.FC = () => {
 
   const descriptionEditor = useEditor({
     extensions: [
-      StarterKit,
+      richTextStarterKit,
       Placeholder.configure({
         placeholder: 'Description du personnage...',
       }),
     ],
+    editorProps: richTextEditorProps,
     content: '',
     editable: isEditing,
     onUpdate: ({ editor }) => {
-      const html = editor.getHTML();
+      const html = stripCodeTags(editor.getHTML());
       setFormData(prev => ({ ...prev, description: html }));
     },
   });

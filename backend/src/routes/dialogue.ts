@@ -1,5 +1,6 @@
 import { Router } from "express";
 import { PrismaClient } from "@prisma/client";
+import { stripCodeTags } from "../utils/stripCodeTags.js";
 const prisma = new PrismaClient();
 const router = Router();
 
@@ -83,7 +84,7 @@ router.post("/", async (req, res) => {
         projectId,
         name: name.trim(),
         tag: tag.trim(),
-        description: description?.trim() || null,
+        description: description ? stripCodeTags(description).trim() || null : null,
         folderId: folderId || null,
         backgroundId: backgroundId || null,
         doFadeAtEnd: doFadeAtEnd === true
@@ -125,7 +126,7 @@ router.put("/:dialogueId", async (req, res) => {
       data: {
         name: name.trim(),
         ...(tag && { tag: tag.trim() }),
-        description: description?.trim() || null,
+        description: description ? stripCodeTags(description).trim() || null : null,
         folderId: folderId || null,
         backgroundId: backgroundId || null,
         ...(doFadeAtEnd !== undefined && { doFadeAtEnd: doFadeAtEnd === true })
@@ -195,7 +196,7 @@ router.post("/:dialogueId/lines", async (req, res) => {
       data: {
         dialogueId,
         characterId: characterId || null,
-        text: text.trim(),
+        text: stripCodeTags(text).trim(),
         order: order || 0,
         secondaryCharacterId: secondaryCharacterId || null,
         mainCharacterMoodId: mainCharacterMoodId || null,
@@ -240,7 +241,7 @@ router.put("/lines/:lineId", async (req, res) => {
       where: { id: lineId },
       data: {
         characterId: characterId || null,
-        text: text.trim(),
+        text: stripCodeTags(text).trim(),
         order: order,
         secondaryCharacterId: secondaryCharacterId !== undefined ? (secondaryCharacterId || null) : undefined,
         mainCharacterMoodId: mainCharacterMoodId !== undefined ? (mainCharacterMoodId || null) : undefined,
@@ -294,7 +295,7 @@ router.post("/lines/:lineId/choices", async (req, res) => {
     const choice = await prisma.dialogueChoice.create({
       data: {
         lineId,
-        text: text.trim(),
+        text: stripCodeTags(text).trim(),
         nextDialogueId: nextDialogueId || null
       }
     });
@@ -318,7 +319,7 @@ router.put("/choices/:choiceId", async (req, res) => {
     const choice = await prisma.dialogueChoice.update({
       where: { id: choiceId },
       data: {
-        text: text.trim(),
+        text: stripCodeTags(text).trim(),
         nextDialogueId: nextDialogueId || null
       }
     });

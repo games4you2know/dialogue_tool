@@ -1,5 +1,6 @@
 import { Router } from "express";
 import { PrismaClient } from "@prisma/client";
+import { stripCodeTags } from "../utils/stripCodeTags.js";
 
 const prisma = new PrismaClient();
 const router = Router();
@@ -47,7 +48,7 @@ router.post("/", async (req, res) => {
     const post = await prisma.socialPost.create({
       data: {
         projectId,
-        content,
+        content: stripCodeTags(content),
         reportReason: reportReason !== undefined ? reportReason : null
       }
     });
@@ -66,7 +67,7 @@ router.put("/:postId", async (req, res) => {
     const post = await prisma.socialPost.update({
       where: { id: postId },
       data: {
-        ...(content !== undefined && { content }),
+        ...(content !== undefined && { content: stripCodeTags(content) }),
         ...(reportReason !== undefined && { reportReason: reportReason !== null ? reportReason : null }),
       }
     });

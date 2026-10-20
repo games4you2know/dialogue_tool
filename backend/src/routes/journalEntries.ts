@@ -1,5 +1,6 @@
 import { Router } from "express";
 import { PrismaClient } from "@prisma/client";
+import { stripCodeTags } from "../utils/stripCodeTags.js";
 
 const prisma = new PrismaClient();
 const router = Router();
@@ -45,10 +46,10 @@ router.post("/", async (req, res) => {
       data: {
         projectId,
         entryId,
-        context: context || '',
+        context: context ? stripCodeTags(context) : '',
         emotion: emotion !== undefined ? emotion : 1,
-        content,
-        info: info || '',
+        content: stripCodeTags(content),
+        info: info ? stripCodeTags(info) : '',
       }
     });
     res.status(201).json(entry);
@@ -67,10 +68,10 @@ router.put("/:id", async (req, res) => {
       where: { id },
       data: {
         ...(entryId !== undefined && { entryId }),
-        ...(context !== undefined && { context }),
+        ...(context !== undefined && { context: stripCodeTags(context) }),
         ...(emotion !== undefined && { emotion }),
-        ...(content !== undefined && { content }),
-        ...(info !== undefined && { info }),
+        ...(content !== undefined && { content: stripCodeTags(content) }),
+        ...(info !== undefined && { info: stripCodeTags(info) }),
       }
     });
     res.json(entry);

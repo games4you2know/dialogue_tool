@@ -1,5 +1,6 @@
 import { Router } from "express";
 import { PrismaClient } from "@prisma/client";
+import { stripCodeTags } from "../utils/stripCodeTags.js";
 const prisma = new PrismaClient();
 const router = Router();
 
@@ -136,8 +137,8 @@ router.post("/:conversationId/messages", async (req, res) => {
       data: {
         conversationId,
         fromCpu: fromCpu === true,
-        text: text,
-        shortContent: shortContent || null,
+        text: stripCodeTags(text),
+        shortContent: shortContent ? stripCodeTags(shortContent) : null,
         timestamp: timestamp ? new Date(timestamp) : new Date()
       },
       include: {
@@ -165,10 +166,10 @@ router.put("/messages/:messageId", async (req, res) => {
     const message = await prisma.sMSMessage.update({
       where: { id: messageId },
       data: {
-        ...(text !== undefined && { text }),
+        ...(text !== undefined && { text: stripCodeTags(text) }),
         ...(fromCpu !== undefined && { fromCpu: fromCpu === true }),
         ...(timestamp && { timestamp: new Date(timestamp) }),
-        ...(shortContent !== undefined && { shortContent: shortContent || null })
+        ...(shortContent !== undefined && { shortContent: shortContent ? stripCodeTags(shortContent) : null })
       },
       include: {
         character: true,
@@ -221,16 +222,16 @@ router.post("/messages/:messageId/questions", async (req, res) => {
     const question = await prisma.sMSQuestion.create({
       data: {
         messageId,
-        content: content.trim(),
+        content: stripCodeTags(content).trim(),
         positiveReactions: null,
         negativeReactions: null,
         answers: {
           create: answers.map((answer: any, index: number) => ({
-            content: answer.content,
-            shortContent: answer.shortContent || null,
+            content: stripCodeTags(answer.content ?? ''),
+            shortContent: answer.shortContent ? stripCodeTags(answer.shortContent) : null,
             isCorrect: answer.isCorrect || false,
             order: answer.order !== undefined ? answer.order : index,
-            cpuResponse: answer.cpuResponse || null
+            cpuResponse: answer.cpuResponse ? stripCodeTags(answer.cpuResponse) : null
           }))
         }
       },
@@ -265,14 +266,14 @@ router.put("/questions/:questionId", async (req, res) => {
     const question = await prisma.sMSQuestion.update({
       where: { id: questionId },
       data: {
-        content: content.trim(),
+        content: stripCodeTags(content).trim(),
         answers: {
           create: answers.map((answer: any, index: number) => ({
-            content: answer.content,
-            shortContent: answer.shortContent || null,
+            content: stripCodeTags(answer.content ?? ''),
+            shortContent: answer.shortContent ? stripCodeTags(answer.shortContent) : null,
             isCorrect: answer.isCorrect || false,
             order: answer.order !== undefined ? answer.order : index,
-            cpuResponse: answer.cpuResponse || null
+            cpuResponse: answer.cpuResponse ? stripCodeTags(answer.cpuResponse) : null
           }))
         }
       },

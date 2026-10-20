@@ -1,10 +1,11 @@
 import { useState, useCallback } from 'react';
 import { useEditor } from '@tiptap/react';
-import StarterKit from '@tiptap/starter-kit';
 import Placeholder from '@tiptap/extension-placeholder';
 import CharacterCount from '@tiptap/extension-character-count';
 import type { DialogueLine } from '../types/index';
 import { dialogueService, type UpdateDialogueLineRequest } from '../services/dialogueService';
+import { stripCodeTags } from '../utils/html';
+import { richTextEditorProps, richTextStarterKit } from '../utils/tiptap';
 
 export const useDialogueLineEditor = (
   selectedLine: DialogueLine | null,
@@ -14,10 +15,7 @@ export const useDialogueLineEditor = (
 
   const editor = useEditor({
     extensions: [
-      StarterKit.configure({
-        codeBlock: false,
-        code: false,
-      }),
+      richTextStarterKit,
       Placeholder.configure({
         placeholder: 'Écrivez le texte du dialogue...',
       }),
@@ -25,10 +23,11 @@ export const useDialogueLineEditor = (
         limit: 1000,
       }),
     ],
+    editorProps: richTextEditorProps,
     content: selectedLine?.text || '',
     onUpdate: ({ editor }) => {
       if (selectedLine && !isUpdating) {
-        const newText = editor.getHTML();
+        const newText = stripCodeTags(editor.getHTML());
         handleUpdateLineText(selectedLine.id, newText);
       }
     },
